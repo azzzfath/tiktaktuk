@@ -1,0 +1,69 @@
+export type Role = "guest" | "customer" | "organizer" | "admin";
+
+export type PaymentStatus = "PAID" | "PENDING" | "CANCELLED";
+
+export type DiscountType = "PERCENTAGE" | "NOMINAL";
+
+export interface Customer {
+  id: string;
+  name: string;
+  email: string;
+}
+
+export interface TicketCategory {
+  id: string;
+  name: string;
+  price: number;
+  remaining: number;
+  total: number;
+}
+
+export interface Seat {
+  id: string;
+  label: string;
+  categoryId: string;
+  available: boolean;
+}
+
+export interface Event {
+  id: string;
+  name: string;
+  date: string;
+  venue: string;
+  bannerUrl?: string;
+  categories: TicketCategory[];
+  seats: Seat[];
+}
+
+export interface OrderItem {
+  categoryId: string;
+  categoryName: string;
+  quantity: number;
+  unitPrice: number;
+  seatLabels: string[];
+}
+
+export interface Order {
+  id: string;
+  customer: Customer;
+  eventId: string;
+  eventName: string;
+  createdAt: string;
+  status: PaymentStatus;
+  items: OrderItem[];
+  serviceFee: number;
+  discount: number;
+  total: number;
+  promoCode?: string;
+}
+
+export interface Promotion {
+  id: string;
+  code: string;
+  type: DiscountType;
+  value: number;
+  startDate: string;
+  endDate: string;
+  usageLimit: number;
+  usageCount: number;
+}
