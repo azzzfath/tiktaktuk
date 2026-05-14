@@ -5,7 +5,7 @@ import { ProfilePayload } from "@/types/auth";
 
 export async function PATCH(request: Request) {
   try {
-    const user = await getSessionUser(cookies().get(sessionCookieName)?.value);
+    const user = await getSessionUser((await cookies()).get(sessionCookieName)?.value);
     if (!user) {
       return NextResponse.json({ message: "Session tidak valid." }, { status: 401 });
     }
@@ -24,7 +24,7 @@ export async function PATCH(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const user = await getSessionUser(cookies().get(sessionCookieName)?.value);
+    const user = await getSessionUser((await cookies()).get(sessionCookieName)?.value);
     if (!user) {
       return NextResponse.json({ message: "Session tidak valid." }, { status: 401 });
     }
