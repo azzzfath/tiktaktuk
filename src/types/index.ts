@@ -11,11 +11,12 @@ export interface Customer {
 }
 
 export interface TicketCategory {
-  id: string;
+  id?: string;             
   name: string;
   price: number;
-  remaining: number;
-  total: number;
+  quota: number;           
+  remaining?: number;   
+  total?: number;        
 }
 
 export interface Seat {
@@ -27,12 +28,15 @@ export interface Seat {
 
 export interface Event {
   id: string;
-  name: string;
-  date: string;
-  venue: string;
+  title: string;     
+  date: string;     
+  time?: string; 
+  venue: string;          
+  artists?: string[];      
+  description?: string;    
   bannerUrl?: string;
   categories: TicketCategory[];
-  seats: Seat[];
+  seats?: Seat[];         
 }
 
 export interface OrderItem {
@@ -76,3 +80,4 @@ export interface Venue {
   city: string;
   hasReservedSeating: boolean;
 }
+
