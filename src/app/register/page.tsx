@@ -8,19 +8,19 @@ import { getSessionUser, sessionCookieName } from "@/lib/db";
 import { UserRole } from "@/types/auth";
 
 interface RegisterPageProps {
-  searchParams: {
+  searchParams: Promise<{
     role?: UserRole;
-  };
+  }>;
 }
 
 export default async function RegisterPage({ searchParams }: RegisterPageProps) {
-  const user = await getSessionUser(cookies().get(sessionCookieName)?.value);
+  const user = await getSessionUser((await cookies()).get(sessionCookieName)?.value);
 
   if (user) {
     redirect("/dashboard");
   }
 
-  const role = searchParams.role;
+  const { role } = await searchParams;
 
   return (
     <AuthShell

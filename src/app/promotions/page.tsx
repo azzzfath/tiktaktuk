@@ -90,10 +90,11 @@ export default function PromotionsPage() {
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="flex flex-col gap-2">
               <Link
-                href="/"
-                className="inline-flex items-center gap-1 text-sm text-zinc-400 hover:text-[#6366F1] transition-colors w-fit"
+                href="/dashboard"
+                className="inline-flex items-center gap-2 text-zinc-500 hover:text-white transition-colors mb-2 group w-fit"
               >
-                <ArrowLeft className="h-4 w-4" /> Kembali
+                <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                <span>Kembali ke Dashboard</span>
               </Link>
               <h1 className="text-3xl font-bold">Manajemen Promosi</h1>
               <p className="text-sm text-zinc-400">Kelola kode promo dan kampanye diskon</p>

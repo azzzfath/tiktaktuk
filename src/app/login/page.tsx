@@ -5,7 +5,7 @@ import { LoginForm } from "@/components/features/auth/LoginForm";
 import { getSessionUser, sessionCookieName } from "@/lib/db";
 
 export default async function LoginPage() {
-  const user = await getSessionUser(cookies().get(sessionCookieName)?.value);
+  const user = await getSessionUser((await cookies()).get(sessionCookieName)?.value);
 
   if (user) {
     redirect("/dashboard");

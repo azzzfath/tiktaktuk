@@ -47,7 +47,7 @@ export const EventFormModal = ({ isOpen, onClose, initialData }: EventFormModalP
               <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">
                 Judul Acara (Event_Title)
               </label>
-              <Input placeholder="cth. Konser Melodi Senja" defaultValue={initialData?.title} />
+              <Input placeholder="cth. Konser Melodi Senja" defaultValue={initialData?.event_title} />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -55,13 +55,13 @@ export const EventFormModal = ({ isOpen, onClose, initialData }: EventFormModalP
                 <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">
                   Tanggal (Date)
                 </label>
-                <Input type="date" defaultValue={initialData?.date} />
+                <Input type="date" defaultValue={initialData?.event_date} />
               </div>
               <div>
                 <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">
                   Waktu (Time)
                 </label>
-                <Input type="time" defaultValue={initialData?.time} />
+                <Input type="time" defaultValue={initialData?.event_time} />
               </div>
             </div>
 

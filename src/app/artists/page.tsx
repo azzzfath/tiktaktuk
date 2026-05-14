@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
 import { ArtistTable } from '@/components/features/artists/ArtistTable';
 import { ArtistModal } from '@/components/features/artists/ArtistModal';
 import { DeleteArtistDialog } from '@/components/features/artists/DeleteArtistDialog';
@@ -87,13 +88,18 @@ export default function ArtistsPage() {
   return (
     <div className="min-h-screen bg-[#0F0F0F] text-[#F4F4F5]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-white">Daftar Artis</h1>
-            <p className="text-zinc-500 text-sm mt-1">
-              Kelola artis yang ada di platform TikTakTuk
-            </p>
-          </div>
+        <div className="mb-8">
+          <Link href="/dashboard" className="inline-flex items-center gap-2 text-zinc-500 hover:text-white transition-colors mb-6 group">
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            <span>Kembali ke Dashboard</span>
+          </Link>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-white">Daftar Artis</h1>
+              <p className="text-zinc-500 text-sm mt-1">
+                Kelola artis yang ada di platform TikTakTuk
+              </p>
+            </div>
           {isAdmin && (
             <button
               onClick={() => { setEditTarget(null); setModalOpen(true); }}
@@ -103,6 +109,7 @@ export default function ArtistsPage() {
               Tambah Artis
             </button>
           )}
+          </div>
         </div>
 
         <div className="grid grid-cols-3 gap-4 mb-8">

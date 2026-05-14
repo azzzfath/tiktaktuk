@@ -9,7 +9,7 @@ interface ProtectedShellProps {
 }
 
 export async function ProtectedShell({ children }: ProtectedShellProps) {
-  const user = await getSessionUser(cookies().get(sessionCookieName)?.value);
+  const user = await getSessionUser((await cookies()).get(sessionCookieName)?.value);
 
   if (!user) {
     redirect("/login");

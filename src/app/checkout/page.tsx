@@ -56,7 +56,7 @@ export default function CheckoutPage() {
       return;
     }
     console.log("[checkout] submit", {
-      eventId: mockEvent.id,
+      eventId: mockEvent.event_id,
       categoryId,
       quantity,
       seatIds,
@@ -97,7 +97,7 @@ export default function CheckoutPage() {
                 />
                 <QuantityCounter value={quantity} max={MAX_QUANTITY} onChange={handleQuantityChange} />
                 <SeatPicker
-                  seats={mockEvent.seats}
+                  seats={mockEvent.seats ?? []}
                   selectedIds={seatIds}
                   maxSelectable={quantity}
                   filterCategoryId={categoryId}

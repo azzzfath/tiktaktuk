@@ -5,7 +5,7 @@ import { ProfileView } from "@/components/features/profile/ProfileView";
 import { getSessionUser, sessionCookieName } from "@/lib/db";
 
 export default async function ProfilePage() {
-  const user = await getSessionUser(cookies().get(sessionCookieName)?.value);
+  const user = await getSessionUser((await cookies()).get(sessionCookieName)?.value);
 
   if (!user) {
     redirect("/login");
