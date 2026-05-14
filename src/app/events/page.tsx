@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/Badge";
 import { EventFormModal } from "@/components/features/event/EventFormModal";
 import { EventDeleteModal } from "@/components/features/event/EventDeleteModal";
 import type { Event } from "@/types";
-import { Plus, Calendar, MapPin, Pencil, Trash2 } from "lucide-react"; 
+import Link from "next/link";
+import { Plus, Calendar, MapPin, Pencil, Trash2, ArrowLeft } from "lucide-react"; 
 
 // Mock Data
 const mockEvents: Event[] = [
@@ -47,6 +48,10 @@ export default function MyEventsPage() {
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
+      <Link href="/dashboard" className="inline-flex items-center gap-2 text-zinc-500 hover:text-white transition-colors mb-6 group">
+        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+        <span>Kembali ke Dashboard</span>
+      </Link>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div>
           <h1 className="text-3xl font-bold text-white">Acara Saya</h1>
