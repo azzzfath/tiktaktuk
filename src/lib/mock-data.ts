@@ -1,15 +1,16 @@
 import { Event, Order, Promotion, Seat, TicketCategory } from "@/types";
 
 export const mockEvent: Event = {
-  id: "evt_001",
-  name: "Synthwave Live Festival 2026",
-  date: "2026-08-15",
-  venue: "Stadion Madya, Jakarta",
+  event_id: "evt_001",
+  event_title: "Synthwave Live Festival 2026",
+  event_date: "2026-08-15",
+  venue_id: "Stadion Madya, Jakarta",
+  artists: ["The Midnight"],
   categories: [
-    { id: "cat_vvip", name: "VVIP", price: 2500000, remaining: 12, total: 50 },
-    { id: "cat_vip", name: "VIP", price: 1500000, remaining: 35, total: 100 },
-    { id: "cat_1", name: "Category 1", price: 850000, remaining: 80, total: 200 },
-    { id: "cat_2", name: "Category 2", price: 500000, remaining: 150, total: 300 },
+    { id: "cat_vvip", name: "VVIP", price: 2500000, quota: 50, remaining: 12, total: 50 },
+    { id: "cat_vip", name: "VIP", price: 1500000, quota: 100, remaining: 35, total: 100 },
+    { id: "cat_1", name: "Category 1", price: 850000, quota: 200, remaining: 80, total: 200 },
+    { id: "cat_2", name: "Category 2", price: 500000, quota: 300, remaining: 150, total: 300 },
   ],
   seats: buildSeats(),
 };

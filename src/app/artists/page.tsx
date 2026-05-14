@@ -109,6 +109,7 @@ export default function ArtistsPage() {
               Tambah Artis
             </button>
           )}
+          </div>
         </div>
 
         <div className="grid grid-cols-3 gap-4 mb-8">

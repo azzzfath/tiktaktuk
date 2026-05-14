@@ -10,15 +10,15 @@ export const EventInfoCard = ({ event }: { event: Event }) => {
           <Sparkles className="h-6 w-6" />
         </span>
         <div className="flex flex-col gap-2">
-          <h2 className="text-xl font-semibold text-[#F4F4F5]">{event.name}</h2>
+          <h2 className="text-xl font-semibold text-[#F4F4F5]">{event.event_title}</h2>
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-zinc-400">
             <span className="inline-flex items-center gap-1.5">
               <Calendar className="h-4 w-4" />
-              {formatDate(event.date)}
+              {formatDate(event.event_date)}
             </span>
             <span className="inline-flex items-center gap-1.5">
               <MapPin className="h-4 w-4" />
-              {event.venue}
+              {event.venue_id}
             </span>
           </div>
         </div>

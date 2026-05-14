@@ -3,9 +3,10 @@ import pool from '@/lib/supabase'
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json()
     const { category_name, quota, price } = body
 
@@ -23,7 +24,7 @@ export async function PUT(
 
     const { rows } = await pool.query(
       'UPDATE ticket_category SET category_name = $1, quota = $2, price = $3 WHERE category_id = $4 RETURNING *',
-      [category_name, Number(quota), Number(price), params.id]
+      [category_name, Number(quota), Number(price), id]
     )
     return NextResponse.json(rows[0])
   } catch (error: any) {
@@ -33,10 +34,11 @@ export async function PUT(
 
 export async function DELETE(
   _request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await pool.query('DELETE FROM ticket_category WHERE category_id = $1', [params.id])
+    const { id } = await params;
+    await pool.query('DELETE FROM ticket_category WHERE category_id = $1', [id])
     return NextResponse.json({ message: 'Kategori tiket berhasil dihapus.' })
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 })
