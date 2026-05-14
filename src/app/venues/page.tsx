@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { VenueFormModal } from "@/components/features/venue/VenueFormModal";
 import { VenueDeleteModal } from "@/components/features/venue/VenueDeleteModal";
 import type { Venue } from "@/types";
+import Link from "next/link";
 import { 
   MapPin, 
   Users, 
@@ -16,7 +17,8 @@ import {
   Trash2, 
   Search, 
   ChevronDown,
-  Building2
+  Building2,
+  ArrowLeft
 } from "lucide-react";
 
 const mockVenues: Venue[] = [
@@ -59,6 +61,10 @@ export default function VenueListPage() {
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       {/* Header & Stats Cards - Sesuai Gambar 6.1 */}
       <div className="mb-10">
+        <Link href="/dashboard" className="inline-flex items-center gap-2 text-zinc-500 hover:text-white transition-colors mb-6 group">
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          <span>Kembali ke Dashboard</span>
+        </Link>
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-2xl font-bold text-white">Manajemen Venue</h1>

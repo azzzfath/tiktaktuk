@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
 import { TicketCategoryTable } from '@/components/features/ticket-category/TicketCategoryTable';
 import { TicketCategoryModal } from '@/components/features/ticket-category/TicketCategoryModal';
 import { DeleteTicketCategoryDialog } from '@/components/features/ticket-category/DeleteTicketCategoryDialog';
@@ -112,13 +113,18 @@ export default function TicketCategoryPage() {
   return (
     <div className="min-h-screen bg-[#0F0F0F] text-[#F4F4F5]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-white">Kategori Tiket</h1>
-            <p className="text-zinc-500 text-sm mt-1">
-              Kelola kategori dan harga tiket per acara
-            </p>
-          </div>
+        <div className="mb-8">
+          <Link href="/dashboard" className="inline-flex items-center gap-2 text-zinc-500 hover:text-white transition-colors mb-6 group">
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            <span>Kembali ke Dashboard</span>
+          </Link>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-white">Kategori Tiket</h1>
+              <p className="text-zinc-500 text-sm mt-1">
+                Kelola kategori dan harga tiket per acara
+              </p>
+            </div>
           {isAdminOrOrganizer && (
             <button
               onClick={() => { setEditTarget(null); setModalOpen(true); }}
