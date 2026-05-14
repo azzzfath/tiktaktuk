@@ -1,46 +1,45 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import pool from '@/lib/supabase'
 
-// GET (ambil semua ticket category, sorted by event name lalu category name)
 export async function GET() {
-  const { data, error } = await supabase
-    .from('ticket_category')
-    .select(`
-      *,
-      event:tevent_id (
-        event_id,
-        event_title
-      )
+  try {
+    const { rows } = await pool.query(`
+      SELECT 
+        tc.*,
+        e.event_title
+      FROM ticket_category tc
+      JOIN event e ON tc.tevent_id = e.event_id
+      ORDER BY e.event_title ASC, tc.category_name ASC
     `)
-    .order('tevent_id', { ascending: true })
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json(data)
+    return NextResponse.json(rows)
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
 }
 
-// POST (create ticket category baru)
 export async function POST(request: Request) {
-  const body = await request.json()
-  const { category_name, quota, price, tevent_id } = body
+  try {
+    const body = await request.json()
+    const { category_name, quota, price, tevent_id } = body
 
-  if (!category_name || !quota || price === undefined || !tevent_id) {
-    return NextResponse.json({ error: 'Semua field wajib diisi.' }, { status: 400 })
+    if (!category_name || !quota || price === undefined || !tevent_id) {
+      return NextResponse.json({ error: 'Semua field wajib diisi.' }, { status: 400 })
+    }
+
+    if (!Number.isInteger(Number(quota)) || Number(quota) <= 0) {
+      return NextResponse.json({ error: 'Kuota harus berupa bilangan bulat positif.' }, { status: 400 })
+    }
+
+    if (Number(price) < 0) {
+      return NextResponse.json({ error: 'Harga tidak boleh negatif.' }, { status: 400 })
+    }
+
+    const { rows } = await pool.query(
+      'INSERT INTO ticket_category (category_name, quota, price, tevent_id) VALUES ($1, $2, $3, $4) RETURNING *',
+      [category_name, Number(quota), Number(price), tevent_id]
+    )
+    return NextResponse.json(rows[0], { status: 201 })
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
-
-  if (!Number.isInteger(Number(quota)) || Number(quota) <= 0) {
-    return NextResponse.json({ error: 'Kuota harus berupa bilangan bulat positif.' }, { status: 400 })
-  }
-
-  if (Number(price) < 0) {
-    return NextResponse.json({ error: 'Harga tidak boleh negatif.' }, { status: 400 })
-  }
-
-  const { data, error } = await supabase
-    .from('ticket_category')
-    .insert([{ category_name, quota: Number(quota), price: Number(price), tevent_id }])
-    .select()
-    .single()
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json(data, { status: 201 })
 }

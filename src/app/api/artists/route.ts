@@ -1,32 +1,30 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import pool from '@/lib/supabase'
 
-// GET (ambil semua artist, sorted by name ascending)
 export async function GET() {
-  const { data, error } = await supabase
-    .from('artist')
-    .select('*')
-    .order('name', { ascending: true })
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json(data)
+  try {
+    const { rows } = await pool.query('SELECT * FROM artist ORDER BY name ASC')
+    return NextResponse.json(rows)
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
 }
 
-// POST (create artist baru)
 export async function POST(request: Request) {
-  const body = await request.json()
-  const { name, genre } = body
+  try {
+    const body = await request.json()
+    const { name, genre } = body
 
-  if (!name || name.trim() === '') {
-    return NextResponse.json({ error: 'Nama artis wajib diisi.' }, { status: 400 })
+    if (!name || name.trim() === '') {
+      return NextResponse.json({ error: 'Nama artis wajib diisi.' }, { status: 400 })
+    }
+
+    const { rows } = await pool.query(
+      'INSERT INTO artist (name, genre) VALUES ($1, $2) RETURNING *',
+      [name.trim(), genre?.trim() || null]
+    )
+    return NextResponse.json(rows[0], { status: 201 })
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
-
-  const { data, error } = await supabase
-    .from('artist')
-    .insert([{ name: name.trim(), genre: genre?.trim() || null }])
-    .select()
-    .single()
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json(data, { status: 201 })
 }
