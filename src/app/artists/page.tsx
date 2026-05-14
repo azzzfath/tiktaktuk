@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import { ArtistTable } from '@/components/features/artists/ArtistTable';
 import { ArtistModal } from '@/components/features/artists/ArtistModal';
@@ -12,28 +12,29 @@ export interface Artist {
   genre: string;
 }
 
-const DUMMY_ARTISTS: Artist[] = [
-  { artist_id: '88888888-0000-0000-0000-000000000001', name: 'Tulus', genre: 'Pop' },
-  { artist_id: '88888888-0000-0000-0000-000000000002', name: 'Sheila On 7', genre: 'Pop Rock' },
-  { artist_id: '88888888-0000-0000-0000-000000000003', name: 'Dewa 19', genre: 'Rock' },
-  { artist_id: '88888888-0000-0000-0000-000000000004', name: 'Raisa', genre: 'Pop' },
-  { artist_id: '88888888-0000-0000-0000-000000000005', name: 'Isyana Sarasvati', genre: 'Pop Klasik' },
-  { artist_id: '88888888-0000-0000-0000-000000000006', name: 'Maliq & D Essentials', genre: 'Jazz/Pop' },
-  { artist_id: '88888888-0000-0000-0000-000000000007', name: 'Noah', genre: 'Pop Rock' },
-  { artist_id: '88888888-0000-0000-0000-000000000008', name: 'Pamungkas', genre: 'Indie Pop' },
-];
-
-// Simulasi role: ganti ke 'customer' atau 'organizer' untuk test tampilan non-admin
-const CURRENT_ROLE = 'customer';
+const CURRENT_ROLE = 'admin';
 
 export default function ArtistsPage() {
-  const [artists, setArtists] = useState<Artist[]>(DUMMY_ARTISTS);
+  const [artists, setArtists] = useState<Artist[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Artist | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Artist | null>(null);
 
   const isAdmin = CURRENT_ROLE === 'admin';
+
+  useEffect(() => {
+    fetchArtists();
+  }, []);
+
+  async function fetchArtists() {
+    setLoading(true);
+    const res = await fetch('/api/artists');
+    const data = await res.json();
+    setArtists(data);
+    setLoading(false);
+  }
 
   const filtered = [...artists]
     .filter(
@@ -46,31 +47,41 @@ export default function ArtistsPage() {
   const uniqueGenres = new Set(artists.map((a) => a.genre)).size;
   const appearedInEvents = artists.length;
 
-  function handleCreate(data: { name: string; genre: string }) {
-    const newArtist: Artist = {
-      artist_id: crypto.randomUUID(),
-      name: data.name,
-      genre: data.genre,
-    };
-    setArtists((prev) => [...prev, newArtist]);
-    setModalOpen(false);
+  async function handleCreate(data: { name: string; genre: string }) {
+    const res = await fetch('/api/artists', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (res.ok) {
+      await fetchArtists();
+      setModalOpen(false);
+    }
   }
 
-  function handleUpdate(data: { name: string; genre: string }) {
+  async function handleUpdate(data: { name: string; genre: string }) {
     if (!editTarget) return;
-    setArtists((prev) =>
-      prev.map((a) =>
-        a.artist_id === editTarget.artist_id ? { ...a, ...data } : a
-      )
-    );
-    setEditTarget(null);
-    setModalOpen(false);
+    const res = await fetch(`/api/artists/${editTarget.artist_id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (res.ok) {
+      await fetchArtists();
+      setEditTarget(null);
+      setModalOpen(false);
+    }
   }
 
-  function handleDelete() {
+  async function handleDelete() {
     if (!deleteTarget) return;
-    setArtists((prev) => prev.filter((a) => a.artist_id !== deleteTarget.artist_id));
-    setDeleteTarget(null);
+    const res = await fetch(`/api/artists/${deleteTarget.artist_id}`, {
+      method: 'DELETE',
+    });
+    if (res.ok) {
+      await fetchArtists();
+      setDeleteTarget(null);
+    }
   }
 
   return (
@@ -97,26 +108,30 @@ export default function ArtistsPage() {
         <div className="grid grid-cols-3 gap-4 mb-8">
           <div className="bg-[#1A1A1A] rounded-xl border border-white/10 p-6">
             <p className="text-zinc-500 text-xs uppercase tracking-wider mb-1">Total Artis</p>
-            <p className="text-3xl font-bold text-white">{artists.length}</p>
+            <p className="text-3xl font-bold text-white">{loading ? '...' : artists.length}</p>
           </div>
           <div className="bg-[#1A1A1A] rounded-xl border border-white/10 p-6">
             <p className="text-zinc-500 text-xs uppercase tracking-wider mb-1">Genre</p>
-            <p className="text-3xl font-bold text-white">{uniqueGenres}</p>
+            <p className="text-3xl font-bold text-white">{loading ? '...' : uniqueGenres}</p>
           </div>
           <div className="bg-[#1A1A1A] rounded-xl border border-white/10 p-6">
             <p className="text-zinc-500 text-xs uppercase tracking-wider mb-1">Tampil di Event</p>
-            <p className="text-3xl font-bold text-white">{appearedInEvents}</p>
+            <p className="text-3xl font-bold text-white">{loading ? '...' : appearedInEvents}</p>
           </div>
         </div>
 
-        <ArtistTable
-          artists={filtered}
-          isAdmin={isAdmin}
-          search={search}
-          onSearchChange={setSearch}
-          onEdit={(artist) => { setEditTarget(artist); setModalOpen(true); }}
-          onDelete={(artist) => setDeleteTarget(artist)}
-        />
+        {loading ? (
+          <div className="text-center text-zinc-500 py-20">Memuat data...</div>
+        ) : (
+          <ArtistTable
+            artists={filtered}
+            isAdmin={isAdmin}
+            search={search}
+            onSearchChange={setSearch}
+            onEdit={(artist) => { setEditTarget(artist); setModalOpen(true); }}
+            onDelete={(artist) => setDeleteTarget(artist)}
+          />
+        )}
       </div>
 
       {modalOpen && (
