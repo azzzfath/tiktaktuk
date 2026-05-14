@@ -23,7 +23,7 @@ export const CategorySelector = ({ categories, selectedId, onSelect }: CategoryS
               key={cat.id}
               type="button"
               disabled={soldOut}
-              onClick={() => onSelect(cat.id)}
+              onClick={() => cat.id && onSelect(cat.id)}
               className={cn(
                 "flex flex-col gap-2 text-left p-4 rounded-lg border transition-colors",
                 selected

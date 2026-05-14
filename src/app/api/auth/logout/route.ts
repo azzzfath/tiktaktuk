@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { deleteSession, sessionCookieName } from "@/lib/db";
 
 export async function POST() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const sessionId = cookieStore.get(sessionCookieName)?.value;
 
   if (sessionId) {
