@@ -1,12 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Search } from "lucide-react";
 import { useRole } from "@/hooks/useRole";
 import { useToast } from "@/hooks/useToast";
-import { mockOrders } from "@/lib/mock-data";
-import { Order, PaymentStatus } from "@/types";
+import {
+  deleteOrder as deleteOrderRequest,
+  listOrders,
+  updateOrderStatus,
+} from "@/lib/api";
+import type { Order, PaymentStatus } from "@/types";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { OrderStatsCards } from "@/components/features/order/OrderStatsCards";
@@ -20,11 +24,34 @@ type StatusFilter = "ALL" | PaymentStatus;
 export default function OrdersPage() {
   const { role } = useRole();
   const { toast } = useToast();
-  const [orders, setOrders] = useState<Order[]>(mockOrders);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
+  const [loading, setLoading] = useState(true);
   const [updateTarget, setUpdateTarget] = useState<Order | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Order | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadOrders() {
+      try {
+        const data = await listOrders();
+        if (active) setOrders(data);
+      } catch (error) {
+        if (active) {
+          toast(error instanceof Error ? error.message : "Gagal memuat order", "error");
+        }
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+
+    void loadOrders();
+    return () => {
+      active = false;
+    };
+  }, [role, toast]);
 
   const filtered = useMemo(() => {
     return orders
@@ -33,16 +60,26 @@ export default function OrdersPage() {
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [orders, search, statusFilter]);
 
-  const handleUpdate = (id: string, status: PaymentStatus) => {
-    setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
-    setUpdateTarget(null);
-    toast(`Status order ${id} berhasil diperbarui.`, "success");
+  const handleUpdate = async (id: string, status: PaymentStatus) => {
+    try {
+      const updatedOrder = await updateOrderStatus(id, status);
+      setOrders((prev) => prev.map((o) => (o.id === id ? updatedOrder : o)));
+      setUpdateTarget(null);
+      toast(`Status order ${id} berhasil diperbarui.`, "success");
+    } catch (error) {
+      toast(error instanceof Error ? error.message : "Gagal memperbarui order", "error");
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setOrders((prev) => prev.filter((o) => o.id !== id));
-    setDeleteTarget(null);
-    toast(`Order ${id} berhasil dihapus.`, "success");
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteOrderRequest(id);
+      setOrders((prev) => prev.filter((o) => o.id !== id));
+      setDeleteTarget(null);
+      toast(`Order ${id} berhasil dihapus.`, "success");
+    } catch (error) {
+      toast(error instanceof Error ? error.message : "Gagal menghapus order", "error");
+    }
   };
 
   return (
@@ -88,12 +125,18 @@ export default function OrdersPage() {
             </div>
           </div>
 
-          <OrderTable
-            orders={filtered}
-            role={role}
-            onUpdate={setUpdateTarget}
-            onDelete={setDeleteTarget}
-          />
+          {loading ? (
+            <div className="bg-[#1A1A1A] rounded-xl border border-white/10 p-12 text-center">
+              <p className="text-zinc-400">Memuat data order...</p>
+            </div>
+          ) : (
+            <OrderTable
+              orders={filtered}
+              role={role}
+              onUpdate={setUpdateTarget}
+              onDelete={setDeleteTarget}
+            />
+          )}
         </div>
       </div>
 

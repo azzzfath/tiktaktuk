@@ -8,44 +8,70 @@ import {
   useSyncExternalStore,
   ReactNode,
 } from "react";
-import { Role } from "@/types";
+import {
+  login as loginRequest,
+  readStoredSession,
+  register as registerRequest,
+  writeStoredSession,
+} from "@/lib/api";
+import type { LoginPayload, RegisterPayload } from "@/lib/api";
+import type { AuthSession, Role } from "@/types";
 
 interface RoleContextValue {
+  session: AuthSession | null;
+  user: AuthSession["user"] | null;
+  token: string | null;
   role: Role;
-  setRole: (role: Role) => void;
+  login: (payload: LoginPayload) => Promise<void>;
+  register: (payload: RegisterPayload) => Promise<void>;
+  logout: () => void;
 }
 
 const RoleContext = createContext<RoleContextValue | null>(null);
 
-const STORAGE_KEY = "tiktaktuk:role";
-const STORAGE_EVENT = "tiktaktuk:role-change";
-const DEFAULT_ROLE: Role = "customer";
+const AUTH_EVENT = "tiktaktuk:auth-change";
 
-const readRole = (): Role => {
-  if (typeof window === "undefined") return DEFAULT_ROLE;
-
-  return (window.localStorage.getItem(STORAGE_KEY) as Role | null) ?? DEFAULT_ROLE;
-};
-
-const subscribeToRole = (callback: () => void) => {
+const subscribeToAuth = (callback: () => void) => {
   window.addEventListener("storage", callback);
-  window.addEventListener(STORAGE_EVENT, callback);
+  window.addEventListener(AUTH_EVENT, callback);
 
   return () => {
     window.removeEventListener("storage", callback);
-    window.removeEventListener(STORAGE_EVENT, callback);
+    window.removeEventListener(AUTH_EVENT, callback);
   };
 };
 
 export const RoleProvider = ({ children }: { children: ReactNode }) => {
-  const role = useSyncExternalStore(subscribeToRole, readRole, () => DEFAULT_ROLE);
+  const session = useSyncExternalStore(subscribeToAuth, readStoredSession, () => null);
 
-  const setRole = useCallback((next: Role) => {
-    window.localStorage.setItem(STORAGE_KEY, next);
-    window.dispatchEvent(new Event(STORAGE_EVENT));
+  const login = useCallback(async (payload: LoginPayload) => {
+    const nextSession = await loginRequest(payload);
+    writeStoredSession(nextSession);
   }, []);
 
-  const value = useMemo(() => ({ role, setRole }), [role, setRole]);
+  const register = useCallback(async (payload: RegisterPayload) => {
+    const nextSession = await registerRequest(payload);
+    writeStoredSession(nextSession);
+  }, []);
+
+  const logout = useCallback(() => {
+    writeStoredSession(null);
+  }, []);
+
+  const role: Role = session?.user.role ?? "guest";
+
+  const value = useMemo(
+    () => ({
+      session,
+      user: session?.user ?? null,
+      token: session?.token ?? null,
+      role,
+      login,
+      register,
+      logout,
+    }),
+    [login, logout, register, role, session]
+  );
 
   return <RoleContext.Provider value={value}>{children}</RoleContext.Provider>;
 };

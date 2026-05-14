@@ -1,12 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Plus, Search } from "lucide-react";
 import { useRole } from "@/hooks/useRole";
 import { useToast } from "@/hooks/useToast";
-import { mockPromotions } from "@/lib/mock-data";
-import { DiscountType, Promotion } from "@/types";
+import {
+  createPromotion as createPromotionRequest,
+  deletePromotion as deletePromotionRequest,
+  listPromotions,
+  updatePromotion as updatePromotionRequest,
+} from "@/lib/api";
+import type { DiscountType, Promotion } from "@/types";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
@@ -25,12 +30,35 @@ export default function PromotionsPage() {
   const { toast } = useToast();
   const isAdmin = role === "admin";
 
-  const [promotions, setPromotions] = useState<Promotion[]>(mockPromotions);
+  const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("ALL");
+  const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Promotion | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Promotion | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadPromotions() {
+      try {
+        const data = await listPromotions();
+        if (active) setPromotions(data);
+      } catch (error) {
+        if (active) {
+          toast(error instanceof Error ? error.message : "Gagal memuat promo", "error");
+        }
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+
+    void loadPromotions();
+    return () => {
+      active = false;
+    };
+  }, [toast]);
 
   const filtered = useMemo(() => {
     return promotions
@@ -40,47 +68,37 @@ export default function PromotionsPage() {
 
   const existingCodes = promotions.map((p) => p.code);
 
-  const handleCreate = (values: PromotionFormValues) => {
-    const newPromo: Promotion = {
-      id: `promo_${Date.now()}`,
-      code: values.code,
-      type: values.type,
-      value: values.value,
-      startDate: values.startDate,
-      endDate: values.endDate,
-      usageLimit: values.usageLimit,
-      usageCount: 0,
-    };
-    setPromotions((prev) => [newPromo, ...prev]);
-    setCreateOpen(false);
-    toast(`Promo ${newPromo.code} berhasil dibuat.`, "success");
+  const handleCreate = async (values: PromotionFormValues) => {
+    try {
+      const newPromo = await createPromotionRequest(values);
+      setPromotions((prev) => [newPromo, ...prev]);
+      setCreateOpen(false);
+      toast(`Promo ${newPromo.code} berhasil dibuat.`, "success");
+    } catch (error) {
+      toast(error instanceof Error ? error.message : "Gagal membuat promo", "error");
+    }
   };
 
-  const handleEdit = (id: string, values: PromotionFormValues) => {
-    setPromotions((prev) =>
-      prev.map((p) =>
-        p.id === id
-          ? {
-              ...p,
-              code: values.code,
-              type: values.type,
-              value: values.value,
-              startDate: values.startDate,
-              endDate: values.endDate,
-              usageLimit: values.usageLimit,
-            }
-          : p
-      )
-    );
-    setEditTarget(null);
-    toast(`Promo ${values.code} berhasil diperbarui.`, "success");
+  const handleEdit = async (id: string, values: PromotionFormValues) => {
+    try {
+      const updatedPromo = await updatePromotionRequest(id, values);
+      setPromotions((prev) => prev.map((p) => (p.id === id ? updatedPromo : p)));
+      setEditTarget(null);
+      toast(`Promo ${updatedPromo.code} berhasil diperbarui.`, "success");
+    } catch (error) {
+      toast(error instanceof Error ? error.message : "Gagal memperbarui promo", "error");
+    }
   };
 
-  const handleDelete = (id: string) => {
-    const target = promotions.find((p) => p.id === id);
-    setPromotions((prev) => prev.filter((p) => p.id !== id));
-    setDeleteTarget(null);
-    toast(`Promo ${target?.code ?? ""} berhasil dihapus.`, "success");
+  const handleDelete = async (id: string) => {
+    try {
+      const deletedPromo = await deletePromotionRequest(id);
+      setPromotions((prev) => prev.filter((p) => p.id !== id));
+      setDeleteTarget(null);
+      toast(`Promo ${deletedPromo.code} berhasil dihapus.`, "success");
+    } catch (error) {
+      toast(error instanceof Error ? error.message : "Gagal menghapus promo", "error");
+    }
   };
 
   return (
@@ -131,12 +149,18 @@ export default function PromotionsPage() {
             </div>
           </div>
 
-          <PromotionTable
-            promotions={filtered}
-            showActions={isAdmin}
-            onEdit={setEditTarget}
-            onDelete={setDeleteTarget}
-          />
+          {loading ? (
+            <div className="bg-[#1A1A1A] rounded-xl border border-white/10 p-12 text-center">
+              <p className="text-zinc-400">Memuat data promo...</p>
+            </div>
+          ) : (
+            <PromotionTable
+              promotions={filtered}
+              showActions={isAdmin}
+              onEdit={setEditTarget}
+              onDelete={setDeleteTarget}
+            />
+          )}
         </div>
       </div>
 

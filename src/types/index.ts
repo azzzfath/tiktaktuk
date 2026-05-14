@@ -1,5 +1,20 @@
 export type Role = "guest" | "customer" | "organizer" | "admin";
 
+export type AccountRole = Exclude<Role, "guest">;
+
+export interface AuthUser {
+  id: string;
+  username: string;
+  role: AccountRole;
+  fullName?: string | null;
+  email?: string | null;
+}
+
+export interface AuthSession {
+  user: AuthUser;
+  token: string;
+}
+
 export type PaymentStatus = "PAID" | "PENDING" | "CANCELLED";
 
 export type DiscountType = "PERCENTAGE" | "NOMINAL";

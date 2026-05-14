@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { ShoppingCart, Receipt, Tag, ArrowRight } from "lucide-react";
+import { Building2, ShoppingCart, Receipt, Tag, ArrowRight } from "lucide-react";
+import { RoleSwitcher } from "@/components/features/order/RoleSwitcher";
 
 interface NavItem {
   href: string;
@@ -27,26 +28,35 @@ const navItems: NavItem[] = [
     description: "Kelola kode promo dan kampanye diskon untuk event Anda.",
     icon: Tag,
   },
+  {
+    href: "/venues",
+    title: "Manajemen Venue",
+    description: "Kelola lokasi pertunjukan, kapasitas, dan tipe seating.",
+    icon: Building2,
+  },
 ];
 
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-[#0F0F0F] text-[#F4F4F5]">
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28">
-        <div className="flex flex-col gap-4 max-w-2xl">
-          <span className="inline-flex w-fit items-center rounded-full bg-[#6366F1]/20 text-[#6366F1] px-2.5 py-0.5 text-xs font-medium">
-            TikTakTuk &middot; Order &amp; Promotion
-          </span>
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-            Platform Tiket Event yang Mudah Dikelola
-          </h1>
-          <p className="text-base text-zinc-400">
-            Demo frontend untuk fitur Order &amp; Promotion (fitur 13&ndash;17). Gunakan tautan di bawah
-            untuk menjelajahi setiap halaman.
-          </p>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex flex-col gap-4 max-w-2xl">
+            <span className="inline-flex w-fit items-center rounded-full bg-[#6366F1]/20 text-[#6366F1] px-2.5 py-0.5 text-xs font-medium">
+              TikTakTuk &middot; TK04 Backend
+            </span>
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
+              Platform Tiket Event yang Mudah Dikelola
+            </h1>
+            <p className="text-base text-zinc-400">
+              Frontend TK03 sekarang terhubung ke backend PostgreSQL untuk fitur order,
+              promosi, venue, dan autentikasi.
+            </p>
+          </div>
+          <RoleSwitcher />
         </div>
 
-        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {navItems.map(({ href, title, description, icon: Icon }) => (
             <Link
               key={href}
