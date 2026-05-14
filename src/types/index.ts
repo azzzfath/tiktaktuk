@@ -27,12 +27,12 @@ export interface Seat {
 }
 
 export interface Event {
-  id: string;
-  title: string;     
-  date: string;     
-  time?: string; 
-  venue: string;          
-  artists?: string[];      
+  event_id: string;
+  event_title: string;     
+  event_date: string;     
+  event_time?: string; 
+  venue_id: string;          
+  artists: string[];      
   description?: string;    
   bannerUrl?: string;
   categories: TicketCategory[];
