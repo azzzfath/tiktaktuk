@@ -67,3 +67,12 @@ export interface Promotion {
   usageLimit: number;
   usageCount: number;
 }
+
+export interface Venue {
+  venue_id: string;
+  venue_name: string;
+  capacity: number;
+  address: string;
+  city: string;
+  hasReservedSeating: boolean;
+}
