@@ -28,7 +28,7 @@ async function listPromotions(req, res, next) {
 
 async function validateCode(req, res, next) {
   try {
-    const promotion = await promotionRepository.findPromotionByCode(req.params.code, undefined, true);
+    const promotion = await promotionRepository.findPromotionByCode(req.params.code);
     if (!promotion) throw createHttpError(404, "Kode promo tidak valid");
     res.json({ data: promotionRepository.mapPromotion(promotion) });
   } catch (error) {

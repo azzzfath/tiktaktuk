@@ -2,7 +2,8 @@ const { HttpError } = require("../utils/httpError");
 
 function normalizeDatabaseMessage(error) {
   if (!error?.message) return null;
-  return error.message.replace(/^ERROR:\s*/i, "");
+  const message = error.message.replace(/^ERROR:\s*/i, "");
+  return error.code === "P0001" ? `ERROR: ${message}` : message;
 }
 
 function errorHandler(error, req, res, next) {
@@ -16,7 +17,7 @@ function errorHandler(error, req, res, next) {
     return;
   }
 
-  if (error?.code === "23505" || error?.code === "23514" || error?.code === "P0001") {
+  if (error?.code === "23503" || error?.code === "23505" || error?.code === "23514" || error?.code === "P0001") {
     res.status(400).json({ error: normalizeDatabaseMessage(error) ?? "Data tidak valid" });
     return;
   }

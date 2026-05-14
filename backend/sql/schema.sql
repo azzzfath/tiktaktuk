@@ -102,3 +102,5 @@ CREATE INDEX IF NOT EXISTS idx_ticket_category_event_id ON ticket_category(teven
 CREATE INDEX IF NOT EXISTS idx_ticket_order_id ON ticket(torder_id);
 CREATE INDEX IF NOT EXISTS idx_ticket_category_id ON ticket(tcategory_id);
 CREATE INDEX IF NOT EXISTS idx_order_customer_id ON "ORDER"(customer_id);
+CREATE INDEX IF NOT EXISTS idx_order_promotion_promotion_id ON order_promotion(promotion_id);
+CREATE INDEX IF NOT EXISTS idx_order_promotion_order_id ON order_promotion(order_id);

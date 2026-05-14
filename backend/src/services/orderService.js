@@ -59,30 +59,34 @@ async function createOrder(user, payload) {
     }
 
     let promotion = null;
-    if (payload.promoCode) {
+    if (payload.promotionId) {
       const promoResult = await client.query(
         `
           SELECT
-            p.promotion_id,
-            p.promo_code,
-            p.discount_type,
-            p.discount_value,
-            p.start_date,
-            p.end_date,
-            p.usage_limit,
-            (
-              SELECT COUNT(*)::INT
-              FROM order_promotion op
-              WHERE op.promotion_id = p.promotion_id
-            ) AS usage_count
-          FROM promotion p
-          WHERE UPPER(p.promo_code) = UPPER($1)
-            AND CURRENT_DATE BETWEEN p.start_date AND p.end_date
-            AND (
-              SELECT COUNT(*)::INT
-              FROM order_promotion op
-              WHERE op.promotion_id = p.promotion_id
-            ) < p.usage_limit
+            promotion_id,
+            promo_code,
+            discount_type,
+            discount_value
+          FROM promotion
+          WHERE promotion_id = $1::UUID
+          FOR UPDATE
+        `,
+        [payload.promotionId]
+      );
+      promotion = promoResult.rows[0] ?? null;
+      if (!promotion) {
+        throw createHttpError(400, `Promotion dengan ID ${payload.promotionId} tidak ditemukan.`);
+      }
+    } else if (payload.promoCode) {
+      const promoResult = await client.query(
+        `
+          SELECT
+            promotion_id,
+            promo_code,
+            discount_type,
+            discount_value
+          FROM promotion
+          WHERE UPPER(promo_code) = UPPER($1)
           FOR UPDATE
         `,
         [payload.promoCode]
