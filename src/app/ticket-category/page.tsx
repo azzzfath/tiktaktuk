@@ -134,6 +134,7 @@ export default function TicketCategoryPage() {
               Tambah Kategori
             </button>
           )}
+          </div>
         </div>
 
         <div className="grid grid-cols-3 gap-4 mb-8">
