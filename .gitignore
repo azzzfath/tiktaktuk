@@ -4,12 +4,8 @@
 /node_modules
 node_modules/
 /.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
+.pnp.js
+.yarn/install-state.gz
 
 # testing
 /coverage
@@ -29,12 +25,10 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
 .env*
 !.env.example
-!backend/.env.example
 
 # vercel
 .vercel
@@ -42,3 +36,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Custom
+CRUD1234.md
+CRUD.md
+dev-server*.log
+/scratch/
+*.pen

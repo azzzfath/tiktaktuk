@@ -1,39 +1,15 @@
 @import "tailwindcss";
 
-/* Mendaftarkan semua Design Tokens sesuai pedoman ke Tailwind */
 @theme {
-  --color-primary: #6366F1;
-  --color-secondary: #8B5CF6;
-  --color-accent: #06B6D4;
-  --color-success: #22C55E;
-  --color-warning: #F59E0B;
-  --color-error: #EF4444;
-  --color-muted: #71717A;
-  
-  --color-bg-dark: #0F0F0F;
-  --color-bg-light: #FAFAFA;
-  --color-surface-dark: #1A1A1A;
-  --color-surface-light: #FFFFFF;
-  --color-text-dark: #F4F4F5;
-  --color-text-light: #18181B;
+  --color-background: #0F0F0F;
+  --color-foreground: #F4F4F5;
 }
 
-/* Mode Terang (Light Mode) */
 :root {
-  --background: var(--color-bg-light);
-  --foreground: var(--color-text-light);
+  color-scheme: dark;
 }
 
-/* Mode Gelap (Dark Mode) */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: var(--color-bg-dark);
-    --foreground: var(--color-text-dark);
-  }
-}
-
-/* Terapkan ke body aplikasi */
 body {
-  background-color: var(--background);
-  color: var(--foreground);
+  background: var(--color-background);
+  color: var(--color-foreground);
 }

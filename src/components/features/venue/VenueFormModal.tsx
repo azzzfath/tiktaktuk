@@ -4,8 +4,7 @@ import { FormEvent } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
-import type { VenueFormValues } from "@/lib/api";
-import type { Venue } from "@/types";
+import type { Venue, VenueFormValues } from "@/types";
 
 interface VenueFormModalProps {
   isOpen: boolean;
