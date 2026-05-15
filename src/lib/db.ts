@@ -210,6 +210,20 @@ export async function updateUserProfile(user: SessionUser, payload: ProfilePaylo
     }
   }
 
+  if (user.role === "administrator") {
+    const { error } = await supabase
+      .from("administrator")
+      .update({
+        full_name: payload.fullName?.trim() || payload.organizerName?.trim(),
+        phone_number: payload.phoneNumber?.trim() || payload.contactEmail?.trim() || null,
+      })
+      .eq("user_id", user.userId);
+
+    if (error) {
+      throw new Error("Gagal memperbarui profil administrator.");
+    }
+  }
+
   return getUserById(user.userId);
 }
 
@@ -463,11 +477,18 @@ async function buildSessionUser(userId: string, username: string, role: UserRole
     };
   }
 
+  const { data } = await supabase
+    .from("administrator")
+    .select("full_name, phone_number")
+    .eq("user_id", userId)
+    .maybeSingle<{ full_name: string; phone_number: string }>();
+
   return {
     userId,
     username,
     role,
-    displayName: "Administrator",
+    displayName: data?.full_name ?? "Administrator",
+    phoneNumber: data?.phone_number ?? null,
   };
 }
 
