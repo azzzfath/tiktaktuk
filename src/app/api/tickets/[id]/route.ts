@@ -8,7 +8,7 @@ export async function PATCH(
 ) {
   const user = await getApiSessionUser();
 
-  if (!userHasRole(user, ["administrator", "organizer"])) {
+  if (!user || !userHasRole(user, ["administrator", "organizer"])) {
     return NextResponse.json({ error: "Anda tidak memiliki akses untuk mengubah tiket." }, { status: 403 });
   }
 
@@ -64,7 +64,7 @@ export async function DELETE(
 ) {
   const user = await getApiSessionUser();
 
-  if (!userHasRole(user, ["administrator", "organizer"])) {
+  if (!user || !userHasRole(user, ["administrator", "organizer"])) {
     return NextResponse.json({ error: "Anda tidak memiliki akses untuk menghapus tiket." }, { status: 403 });
   }
 
