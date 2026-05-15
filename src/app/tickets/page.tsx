@@ -14,7 +14,8 @@ export default async function TicketsPage() {
   const permissions = {
     role: user.role,
     canCreateTicket: user.role === "administrator" || user.role === "organizer",
-    canManageTicket: user.role === "administrator" || user.role === "organizer"
+    canManageTicket: user.role === "administrator" || user.role === "organizer",
+    canManageSeat: user.role === "administrator" || user.role === "organizer"
   };
 
   return (
