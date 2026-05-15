@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Search } from "lucide-react";
-import { mockOrders } from "@/lib/mock-data";
+import { useToast } from "@/hooks/useToast";
 import { Order, PaymentStatus } from "@/types";
 import { UserRole } from "@/types/auth";
 import { Input } from "@/components/ui/Input";
@@ -14,7 +14,6 @@ import { DeleteOrderModal } from "@/components/features/order/DeleteOrderModal";
 
 type StatusFilter = "ALL" | PaymentStatus;
 
-/** Map real SessionUser role to the legacy Role used by order sub-components */
 function toLegacyRole(role: UserRole) {
   if (role === "administrator") return "admin" as const;
   return role as "customer" | "organizer";
@@ -26,37 +25,78 @@ interface OrderManagementProps {
 
 export function OrderManagement({ role }: OrderManagementProps) {
   const legacyRole = toLegacyRole(role);
-  const [orders, setOrders] = useState<Order[]>(mockOrders);
+  const { toast } = useToast();
+  const [orders, setOrders] = useState<Order[]>([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
+  const [loading, setLoading] = useState(true);
   const [updateTarget, setUpdateTarget] = useState<Order | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Order | null>(null);
 
+  useEffect(() => {
+    let active = true;
+
+    async function loadOrders() {
+      try {
+        const response = await fetch("/api/orders");
+        if (!response.ok) throw new Error(await readError(response));
+        const data = (await response.json()) as Order[];
+        if (active) setOrders(data);
+      } catch (error) {
+        if (active) toast(error instanceof Error ? error.message : "Gagal memuat order.", "error");
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+
+    void loadOrders();
+    return () => {
+      active = false;
+    };
+  }, [toast]);
+
   const filtered = useMemo(() => {
     return orders
-      .filter((o) => o.id.toLowerCase().includes(search.trim().toLowerCase()))
-      .filter((o) => (statusFilter === "ALL" ? true : o.status === statusFilter))
+      .filter((order) => order.id.toLowerCase().includes(search.trim().toLowerCase()))
+      .filter((order) => (statusFilter === "ALL" ? true : order.status === statusFilter))
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [orders, search, statusFilter]);
 
-  const handleUpdate = (id: string, status: PaymentStatus) => {
-    setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
-    setUpdateTarget(null);
+  const handleUpdate = async (id: string, status: PaymentStatus) => {
+    try {
+      const response = await fetch(`/api/orders/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      if (!response.ok) throw new Error(await readError(response));
+      const updated = (await response.json()) as Order;
+      setOrders((prev) => prev.map((order) => (order.id === id ? updated : order)));
+      setUpdateTarget(null);
+      toast(`Status order ${id} berhasil diperbarui.`, "success");
+    } catch (error) {
+      toast(error instanceof Error ? error.message : "Gagal memperbarui order.", "error");
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setOrders((prev) => prev.filter((o) => o.id !== id));
-    setDeleteTarget(null);
+  const handleDelete = async (id: string) => {
+    try {
+      const response = await fetch(`/api/orders/${id}`, { method: "DELETE" });
+      if (!response.ok) throw new Error(await readError(response));
+      setOrders((prev) => prev.filter((order) => order.id !== id));
+      setDeleteTarget(null);
+      toast(`Order ${id} berhasil dihapus.`, "success");
+    } catch (error) {
+      toast(error instanceof Error ? error.message : "Gagal menghapus order.", "error");
+    }
   };
 
   return (
     <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
       <div className="flex flex-col gap-8">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="flex flex-col gap-2">
-            <h1 className="text-3xl font-bold">Daftar Order</h1>
-            <p className="text-sm text-zinc-400">Riwayat pembelian tiket Anda</p>
-          </div>
+        <div className="flex flex-col gap-2">
+          <h1 className="text-3xl font-bold">Daftar Order</h1>
+          <p className="text-sm text-zinc-400">Riwayat pembelian tiket Anda</p>
         </div>
 
         <OrderStatsCards orders={orders} role={legacyRole} />
@@ -67,14 +107,14 @@ export function OrderManagement({ role }: OrderManagementProps) {
             <Input
               placeholder="Cari order ID..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(event) => setSearch(event.target.value)}
               className="pl-9"
             />
           </div>
           <div className="sm:w-56">
             <Select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
+              onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}
             >
               <option value="ALL" className="bg-[#1A1A1A]">Semua Status</option>
               <option value="PAID" className="bg-[#1A1A1A]">Lunas</option>
@@ -84,12 +124,18 @@ export function OrderManagement({ role }: OrderManagementProps) {
           </div>
         </div>
 
-        <OrderTable
-          orders={filtered}
-          role={legacyRole}
-          onUpdate={setUpdateTarget}
-          onDelete={setDeleteTarget}
-        />
+        {loading ? (
+          <div className="bg-[#1A1A1A] rounded-xl border border-white/10 p-12 text-center">
+            <p className="text-zinc-400">Memuat data order...</p>
+          </div>
+        ) : (
+          <OrderTable
+            orders={filtered}
+            role={legacyRole}
+            onUpdate={setUpdateTarget}
+            onDelete={setDeleteTarget}
+          />
+        )}
       </div>
 
       <UpdateOrderModal
@@ -104,4 +150,9 @@ export function OrderManagement({ role }: OrderManagementProps) {
       />
     </section>
   );
+}
+
+async function readError(response: Response) {
+  const payload = await response.json().catch(() => null) as { error?: string; message?: string } | null;
+  return payload?.error ?? payload?.message ?? "Request gagal.";
 }

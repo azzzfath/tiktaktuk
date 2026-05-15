@@ -1,13 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
 import { VenueFormModal } from "@/components/features/venue/VenueFormModal";
 import { VenueDeleteModal } from "@/components/features/venue/VenueDeleteModal";
-import type { Venue } from "@/types";
+import { useToast } from "@/hooks/useToast";
+import type { Venue, VenueFormValues } from "@/types";
 import { UserRole } from "@/types/auth";
 import {
   MapPin,
@@ -16,36 +18,8 @@ import {
   Pencil,
   Trash2,
   Search,
-  ChevronDown,
   Building2,
 } from "lucide-react";
-
-const mockVenues: Venue[] = [
-  {
-    venue_id: "1",
-    venue_name: "Jakarta Convention Center",
-    capacity: 1000,
-    address: "Jl. Gatot Subroto No.1",
-    city: "Jakarta",
-    hasReservedSeating: true,
-  },
-  {
-    venue_id: "2",
-    venue_name: "Taman Impian Jayakarta",
-    capacity: 500,
-    address: "Jl. Lodan Timur No.7",
-    city: "Jakarta Utara",
-    hasReservedSeating: false,
-  },
-  {
-    venue_id: "3",
-    venue_name: "Bandung Hall Center",
-    capacity: 800,
-    address: "Jl. Asia Afrika",
-    city: "Bandung",
-    hasReservedSeating: true,
-  },
-];
 
 interface VenueManagementProps {
   role: UserRole;
@@ -53,14 +27,104 @@ interface VenueManagementProps {
 
 export function VenueManagement({ role }: VenueManagementProps) {
   const canManage = role === "administrator" || role === "organizer";
+  const { toast } = useToast();
 
+  const [venues, setVenues] = useState<Venue[]>([]);
+  const [search, setSearch] = useState("");
+  const [cityFilter, setCityFilter] = useState("ALL");
+  const [seatingFilter, setSeatingFilter] = useState("ALL");
+  const [loading, setLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
 
+  useEffect(() => {
+    let active = true;
+
+    async function loadVenues() {
+      try {
+        const response = await fetch("/api/venues");
+        if (!response.ok) throw new Error(await readError(response));
+        const data = (await response.json()) as Venue[];
+        if (active) setVenues(data);
+      } catch (error) {
+        if (active) toast(error instanceof Error ? error.message : "Gagal memuat venue.", "error");
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+
+    void loadVenues();
+    return () => {
+      active = false;
+    };
+  }, [toast]);
+
+  const cities = useMemo(() => Array.from(new Set(venues.map((venue) => venue.city))), [venues]);
+
+  const filteredVenues = useMemo(() => {
+    return venues
+      .filter((venue) => {
+        const term = search.trim().toLowerCase();
+        if (!term) return true;
+        return (
+          venue.venue_name.toLowerCase().includes(term) ||
+          venue.address.toLowerCase().includes(term)
+        );
+      })
+      .filter((venue) => (cityFilter === "ALL" ? true : venue.city === cityFilter))
+      .filter((venue) => {
+        if (seatingFilter === "ALL") return true;
+        return seatingFilter === "RESERVED" ? venue.hasReservedSeating : !venue.hasReservedSeating;
+      });
+  }, [cityFilter, search, seatingFilter, venues]);
+
+  const reservedCount = venues.filter((venue) => venue.hasReservedSeating).length;
+  const totalCapacity = venues.reduce((sum, venue) => sum + venue.capacity, 0);
+
+  const handleSubmitVenue = async (values: VenueFormValues) => {
+    try {
+      const url = selectedVenue ? `/api/venues/${selectedVenue.venue_id}` : "/api/venues";
+      const response = await fetch(url, {
+        method: selectedVenue ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
+      if (!response.ok) throw new Error(await readError(response));
+      const venue = (await response.json()) as Venue;
+
+      if (selectedVenue) {
+        setVenues((prev) => prev.map((item) => (item.venue_id === venue.venue_id ? venue : item)));
+        toast(`Venue ${venue.venue_name} berhasil diperbarui.`, "success");
+      } else {
+        setVenues((prev) => [...prev, venue]);
+        toast(`Venue ${venue.venue_name} berhasil dibuat.`, "success");
+      }
+
+      setIsFormOpen(false);
+      setSelectedVenue(null);
+    } catch (error) {
+      toast(error instanceof Error ? error.message : "Gagal menyimpan venue.", "error");
+    }
+  };
+
+  const handleDeleteVenue = async () => {
+    if (!selectedVenue) return;
+
+    try {
+      const response = await fetch(`/api/venues/${selectedVenue.venue_id}`, { method: "DELETE" });
+      if (!response.ok) throw new Error(await readError(response));
+      setVenues((prev) => prev.filter((venue) => venue.venue_id !== selectedVenue.venue_id));
+      toast(`Venue ${selectedVenue.venue_name} berhasil dihapus.`, "success");
+      setIsDeleteOpen(false);
+      setSelectedVenue(null);
+    } catch (error) {
+      toast(error instanceof Error ? error.message : "Gagal menghapus venue.", "error");
+    }
+  };
+
   return (
     <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
-      {/* Header & Stats Cards */}
       <div className="mb-10">
         <div className="flex justify-between items-center mb-6">
           <div>
@@ -77,36 +141,56 @@ export function VenueManagement({ role }: VenueManagementProps) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card className="p-4 flex flex-col gap-1">
             <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Total Venue</span>
-            <span className="text-2xl font-bold">3</span>
+            <span className="text-2xl font-bold">{venues.length}</span>
           </Card>
           <Card className="p-4 flex flex-col gap-1">
             <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Reserved Seating</span>
-            <span className="text-2xl font-bold">2</span>
+            <span className="text-2xl font-bold">{reservedCount}</span>
           </Card>
           <Card className="p-4 flex flex-col gap-1">
             <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Total Kapasitas</span>
-            <span className="text-2xl font-bold">2,300</span>
+            <span className="text-2xl font-bold">{totalCapacity.toLocaleString("id-ID")}</span>
           </Card>
         </div>
       </div>
 
-      {/* Filter & Search Bar */}
       <div className="flex flex-col md:flex-row gap-3 mb-8">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-          <Input className="pl-10" placeholder="Cari nama atau alamat..." />
+          <Input
+            className="pl-10"
+            placeholder="Cari nama atau alamat..."
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+          />
         </div>
-        <Button variant="ghost" className="border border-white/10 bg-[#1A1A1A] text-zinc-400 flex justify-between gap-4 min-w-[140px]">
-          Semua Kota <ChevronDown className="w-4 h-4" />
-        </Button>
-        <Button variant="ghost" className="border border-white/10 bg-[#1A1A1A] text-zinc-400 flex justify-between gap-4 min-w-[160px]">
-          Semua Tipe Seating <ChevronDown className="w-4 h-4" />
-        </Button>
+        <div className="md:w-48">
+          <Select value={cityFilter} onChange={(event) => setCityFilter(event.target.value)}>
+            <option value="ALL" className="bg-[#1A1A1A]">Semua Kota</option>
+            {cities.map((city) => (
+              <option key={city} value={city} className="bg-[#1A1A1A]">{city}</option>
+            ))}
+          </Select>
+        </div>
+        <div className="md:w-56">
+          <Select value={seatingFilter} onChange={(event) => setSeatingFilter(event.target.value)}>
+            <option value="ALL" className="bg-[#1A1A1A]">Semua Tipe Seating</option>
+            <option value="RESERVED" className="bg-[#1A1A1A]">Reserved Seating</option>
+            <option value="FREE" className="bg-[#1A1A1A]">Free Seating</option>
+          </Select>
+        </div>
       </div>
 
-      {/* Venue List Items */}
       <div className="space-y-4">
-        {mockVenues.map((venue) => (
+        {loading ? (
+          <Card className="p-12 text-center">
+            <p className="text-zinc-400">Memuat data venue...</p>
+          </Card>
+        ) : filteredVenues.length === 0 ? (
+          <Card className="p-12 text-center">
+            <p className="text-zinc-400">Tidak ada venue yang cocok dengan filter.</p>
+          </Card>
+        ) : filteredVenues.map((venue) => (
           <Card key={venue.venue_id} className="p-5 flex flex-col md:flex-row md:items-center gap-6">
             <div className="w-12 h-12 rounded-lg bg-[#6366F1]/10 flex items-center justify-center shrink-0">
               <Building2 className="w-6 h-6 text-[#6366F1]" />
@@ -116,7 +200,7 @@ export function VenueManagement({ role }: VenueManagementProps) {
               <div className="flex flex-wrap items-center gap-2 mb-1">
                 <h3 className="font-bold text-white text-lg">{venue.venue_name}</h3>
                 <Badge variant={venue.hasReservedSeating ? "primary" : "muted"} className="text-[10px] uppercase">
-                  {venue.hasReservedSeating ? "✓ Reserved Seating" : "⊘ Free Seating"}
+                  {venue.hasReservedSeating ? "Reserved Seating" : "Free Seating"}
                 </Badge>
               </div>
               <div className="flex items-center gap-1.5 text-zinc-500 text-sm mb-4">
@@ -132,7 +216,6 @@ export function VenueManagement({ role }: VenueManagementProps) {
               </div>
             </div>
 
-            {/* Tombol Aksi - Hanya untuk Admin/Organizer */}
             {canManage && (
               <div className="flex flex-row md:flex-col gap-2">
                 <Button
@@ -155,8 +238,22 @@ export function VenueManagement({ role }: VenueManagementProps) {
         ))}
       </div>
 
-      <VenueFormModal isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} initialData={selectedVenue} />
-      <VenueDeleteModal isOpen={isDeleteOpen} onClose={() => setIsDeleteOpen(false)} onConfirm={() => setIsDeleteOpen(false)} />
+      <VenueFormModal
+        isOpen={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        initialData={selectedVenue}
+        onSubmit={handleSubmitVenue}
+      />
+      <VenueDeleteModal
+        isOpen={isDeleteOpen}
+        onClose={() => setIsDeleteOpen(false)}
+        onConfirm={handleDeleteVenue}
+      />
     </section>
   );
+}
+
+async function readError(response: Response) {
+  const payload = await response.json().catch(() => null) as { error?: string; message?: string } | null;
+  return payload?.error ?? payload?.message ?? "Request gagal.";
 }

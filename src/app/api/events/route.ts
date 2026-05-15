@@ -1,11 +1,13 @@
-import { NextResponse } from 'next/server'
-import pool from '@/lib/supabase'
+import { NextResponse } from "next/server";
+import { listEvents } from "@/lib/tk04-data";
 
 export async function GET() {
   try {
-    const { rows } = await pool.query('SELECT event_id, event_title FROM event ORDER BY event_title ASC')
-    return NextResponse.json(rows)
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json(await listEvents());
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Gagal memuat event." },
+      { status: 500 }
+    );
   }
 }

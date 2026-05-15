@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Plus, Search } from "lucide-react";
-import { mockPromotions } from "@/lib/mock-data";
+import { useToast } from "@/hooks/useToast";
 import { DiscountType, Promotion } from "@/types";
 import { UserRole } from "@/types/auth";
 import { Input } from "@/components/ui/Input";
@@ -23,59 +23,90 @@ interface PromotionManagementProps {
 
 export function PromotionManagement({ role }: PromotionManagementProps) {
   const isAdmin = role === "administrator";
+  const { toast } = useToast();
 
-  const [promotions, setPromotions] = useState<Promotion[]>(mockPromotions);
+  const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("ALL");
+  const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Promotion | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Promotion | null>(null);
 
+  useEffect(() => {
+    let active = true;
+
+    async function loadPromotions() {
+      try {
+        const response = await fetch("/api/promotions");
+        if (!response.ok) throw new Error(await readError(response));
+        const data = (await response.json()) as Promotion[];
+        if (active) setPromotions(data);
+      } catch (error) {
+        if (active) toast(error instanceof Error ? error.message : "Gagal memuat promo.", "error");
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+
+    void loadPromotions();
+    return () => {
+      active = false;
+    };
+  }, [toast]);
+
   const filtered = useMemo(() => {
     return promotions
-      .filter((p) => p.code.toLowerCase().includes(search.trim().toLowerCase()))
-      .filter((p) => (typeFilter === "ALL" ? true : p.type === typeFilter));
+      .filter((promo) => promo.code.toLowerCase().includes(search.trim().toLowerCase()))
+      .filter((promo) => (typeFilter === "ALL" ? true : promo.type === typeFilter));
   }, [promotions, search, typeFilter]);
 
-  const existingCodes = promotions.map((p) => p.code);
+  const existingCodes = promotions.map((promo) => promo.code);
 
-  const handleCreate = (values: PromotionFormValues) => {
-    const newPromo: Promotion = {
-      id: `promo_${Date.now()}`,
-      code: values.code,
-      type: values.type,
-      value: values.value,
-      startDate: values.startDate,
-      endDate: values.endDate,
-      usageLimit: values.usageLimit,
-      usageCount: 0,
-    };
-    setPromotions((prev) => [newPromo, ...prev]);
-    setCreateOpen(false);
+  const handleCreate = async (values: PromotionFormValues) => {
+    try {
+      const response = await fetch("/api/promotions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
+      if (!response.ok) throw new Error(await readError(response));
+      const promotion = (await response.json()) as Promotion;
+      setPromotions((prev) => [promotion, ...prev]);
+      setCreateOpen(false);
+      toast(`Promo ${promotion.code} berhasil dibuat.`, "success");
+    } catch (error) {
+      toast(error instanceof Error ? error.message : "Gagal membuat promo.", "error");
+    }
   };
 
-  const handleEdit = (id: string, values: PromotionFormValues) => {
-    setPromotions((prev) =>
-      prev.map((p) =>
-        p.id === id
-          ? {
-              ...p,
-              code: values.code,
-              type: values.type,
-              value: values.value,
-              startDate: values.startDate,
-              endDate: values.endDate,
-              usageLimit: values.usageLimit,
-            }
-          : p
-      )
-    );
-    setEditTarget(null);
+  const handleEdit = async (id: string, values: PromotionFormValues) => {
+    try {
+      const response = await fetch(`/api/promotions/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
+      if (!response.ok) throw new Error(await readError(response));
+      const promotion = (await response.json()) as Promotion;
+      setPromotions((prev) => prev.map((item) => (item.id === id ? promotion : item)));
+      setEditTarget(null);
+      toast(`Promo ${promotion.code} berhasil diperbarui.`, "success");
+    } catch (error) {
+      toast(error instanceof Error ? error.message : "Gagal memperbarui promo.", "error");
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setPromotions((prev) => prev.filter((p) => p.id !== id));
-    setDeleteTarget(null);
+  const handleDelete = async (id: string) => {
+    try {
+      const response = await fetch(`/api/promotions/${id}`, { method: "DELETE" });
+      if (!response.ok) throw new Error(await readError(response));
+      setPromotions((prev) => prev.filter((promo) => promo.id !== id));
+      setDeleteTarget(null);
+      toast("Promo berhasil dihapus.", "success");
+    } catch (error) {
+      toast(error instanceof Error ? error.message : "Gagal menghapus promo.", "error");
+    }
   };
 
   return (
@@ -86,15 +117,13 @@ export function PromotionManagement({ role }: PromotionManagementProps) {
             <h1 className="text-3xl font-bold">Manajemen Promosi</h1>
             <p className="text-sm text-zinc-400">Kelola kode promo dan kampanye diskon</p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            {isAdmin && (
-              <Button variant="primary" onClick={() => setCreateOpen(true)}>
-                <span className="inline-flex items-center gap-1.5">
-                  <Plus className="h-4 w-4" /> Buat Promo
-                </span>
-              </Button>
-            )}
-          </div>
+          {isAdmin && (
+            <Button variant="primary" onClick={() => setCreateOpen(true)}>
+              <span className="inline-flex items-center gap-1.5">
+                <Plus className="h-4 w-4" /> Buat Promo
+              </span>
+            </Button>
+          )}
         </div>
 
         <PromotionStatsCards promotions={promotions} />
@@ -105,12 +134,12 @@ export function PromotionManagement({ role }: PromotionManagementProps) {
             <Input
               placeholder="Cari kode promo..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(event) => setSearch(event.target.value)}
               className="pl-9"
             />
           </div>
           <div className="sm:w-56">
-            <Select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as TypeFilter)}>
+            <Select value={typeFilter} onChange={(event) => setTypeFilter(event.target.value as TypeFilter)}>
               <option value="ALL" className="bg-[#1A1A1A]">Semua Tipe</option>
               <option value="PERCENTAGE" className="bg-[#1A1A1A]">Persentase</option>
               <option value="NOMINAL" className="bg-[#1A1A1A]">Nominal</option>
@@ -118,12 +147,18 @@ export function PromotionManagement({ role }: PromotionManagementProps) {
           </div>
         </div>
 
-        <PromotionTable
-          promotions={filtered}
-          showActions={isAdmin}
-          onEdit={setEditTarget}
-          onDelete={setDeleteTarget}
-        />
+        {loading ? (
+          <div className="bg-[#1A1A1A] rounded-xl border border-white/10 p-12 text-center">
+            <p className="text-zinc-400">Memuat data promo...</p>
+          </div>
+        ) : (
+          <PromotionTable
+            promotions={filtered}
+            showActions={isAdmin}
+            onEdit={setEditTarget}
+            onDelete={setDeleteTarget}
+          />
+        )}
       </div>
 
       {isAdmin && (
@@ -149,4 +184,9 @@ export function PromotionManagement({ role }: PromotionManagementProps) {
       )}
     </section>
   );
+}
+
+async function readError(response: Response) {
+  const payload = await response.json().catch(() => null) as { error?: string; message?: string } | null;
+  return payload?.error ?? payload?.message ?? "Request gagal.";
 }

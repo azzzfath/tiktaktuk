@@ -20,12 +20,12 @@ export const RoleSwitcher = () => {
       <span className="text-xs font-medium text-zinc-400">Role:</span>
       <select
         value={role}
-        onChange={(e) => setRole(e.target.value as Role)}
+        onChange={(event) => setRole(event.target.value as Role)}
         className="bg-transparent text-sm text-[#F4F4F5] focus:outline-none cursor-pointer"
       >
-        {roles.map((r) => (
-          <option key={r.value} value={r.value} className="bg-[#1A1A1A]">
-            {r.label}
+        {roles.map((item) => (
+          <option key={item.value} value={item.value} className="bg-[#1A1A1A]">
+            {item.label}
           </option>
         ))}
       </select>

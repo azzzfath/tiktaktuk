@@ -29,7 +29,9 @@ export const sessionCookieName = "tiktaktuk_session";
 
 export function getSupabaseServerClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const key =
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
   if (!url || !key) {
     throw new Error("Supabase environment variables are not configured.");
@@ -264,7 +266,7 @@ export async function getDashboardData(user: SessionUser): Promise<DashboardData
     supabase.from("user_account").select("user_id", { count: "exact", head: true }),
     supabase.from("event").select("event_id", { count: "exact", head: true }),
     supabase.from("venue").select("venue_id", { count: "exact", head: true }),
-    supabase.from("order").select("order_id", { count: "exact", head: true }),
+    supabase.from("ORDER").select("order_id", { count: "exact", head: true }),
     supabase.from("ticket").select("ticket_id", { count: "exact", head: true }),
     supabase.from("seat").select("seat_id", { count: "exact", head: true }),
     supabase.from("ticket").select("ticket_id, ticket_category(event(event_datetime))"),

@@ -8,7 +8,7 @@ export async function GET() {
         tc.*,
         e.event_title
       FROM ticket_category tc
-      JOIN event e ON tc.tevent_id = e.event_id
+      JOIN event e ON tc.event_id = e.event_id
       ORDER BY e.event_title ASC, tc.category_name ASC
     `)
     return NextResponse.json(rows)
@@ -20,9 +20,9 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { category_name, quota, price, tevent_id } = body
+    const { category_name, quota, price, event_id } = body
 
-    if (!category_name || !quota || price === undefined || !tevent_id) {
+    if (!category_name || !quota || price === undefined || !event_id) {
       return NextResponse.json({ error: 'Semua field wajib diisi.' }, { status: 400 })
     }
 
@@ -35,8 +35,8 @@ export async function POST(request: Request) {
     }
 
     const { rows } = await pool.query(
-      'INSERT INTO ticket_category (category_name, quota, price, tevent_id) VALUES ($1, $2, $3, $4) RETURNING *',
-      [category_name, Number(quota), Number(price), tevent_id]
+      'INSERT INTO ticket_category (category_name, quota, price, event_id) VALUES ($1, $2, $3, $4) RETURNING *',
+      [category_name, Number(quota), Number(price), event_id]
     )
     return NextResponse.json(rows[0], { status: 201 })
   } catch (error: any) {

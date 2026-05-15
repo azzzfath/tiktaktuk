@@ -4,30 +4,35 @@ import { FormEvent, useState } from "react";
 import { Tag, X } from "lucide-react";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-import { validPromoCodes, mockPromotions } from "@/lib/mock-data";
 import { Promotion } from "@/types";
 
 interface PromoCodeInputProps {
   applied: Promotion | null;
   onApply: (promo: Promotion | null) => void;
+  onValidate: (code: string) => Promise<Promotion>;
 }
 
-export const PromoCodeInput = ({ applied, onApply }: PromoCodeInputProps) => {
+export const PromoCodeInput = ({ applied, onApply, onValidate }: PromoCodeInputProps) => {
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const submit = (e: FormEvent) => {
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
     const normalized = code.trim().toUpperCase();
     if (!normalized) return;
-    if (!validPromoCodes.includes(normalized)) {
-      setError("Kode promo tidak valid");
+
+    setLoading(true);
+    try {
+      const promo = await onValidate(normalized);
+      setError(null);
+      onApply(promo);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Kode promo tidak valid");
       onApply(null);
-      return;
+    } finally {
+      setLoading(false);
     }
-    const promo = mockPromotions.find((p) => p.code === normalized) ?? null;
-    setError(null);
-    onApply(promo);
   };
 
   const clear = () => {
@@ -66,8 +71,8 @@ export const PromoCodeInput = ({ applied, onApply }: PromoCodeInputProps) => {
                 if (error) setError(null);
               }}
             />
-            <Button type="submit" variant="secondary">
-              Terapkan
+            <Button type="submit" variant="secondary" disabled={loading}>
+              {loading ? "Cek..." : "Terapkan"}
             </Button>
           </div>
           {error && <p className="text-xs text-[#EF4444]">{error}</p>}

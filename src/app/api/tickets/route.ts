@@ -95,8 +95,8 @@ export async function POST(request: Request) {
     const code = generateTicketCode(event.event_title, category.category_name, data.tickets.filter((ticket) => ticket.category_id === category_id).length);
     const { data: ticket, error: ticketError } = await supabase
       .from("ticket")
-      .insert({ ticket_code: code, category_id, order_id })
-      .select("ticket_id, ticket_code")
+      .insert({ ticket_code: code, category_id: category_id, order_id: order_id })
+      .select("ticket_id, ticket_code, category_id, order_id")
       .single<TicketRow>();
 
     if (ticketError || !ticket) {

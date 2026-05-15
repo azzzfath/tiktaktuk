@@ -12,7 +12,7 @@ export interface TicketCategory {
   category_name: string;
   quota: number;
   price: number;
-  tevent_id: string;
+  event_id: string;
   event_name: string;
   event?: { event_id: string; event_title: string };
 }
@@ -62,7 +62,7 @@ export default function TicketCategoryPage() {
   const filtered = [...categories]
     .filter((c) => {
       const matchSearch = c.category_name.toLowerCase().includes(search.toLowerCase());
-      const matchEvent = eventFilter ? c.tevent_id === eventFilter : true;
+      const matchEvent = eventFilter ? c.event_id === eventFilter : true;
       return matchSearch && matchEvent;
     })
     .sort((a, b) => {

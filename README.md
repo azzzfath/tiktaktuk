@@ -18,11 +18,15 @@ Proyek ini membutuhkan koneksi ke database Supabase. Karena `.env.local` tidak d
 ```bash
 cp .env.example .env.local
 ```
-2. Isi `NEXT_PUBLIC_SUPABASE_URL` dan `NEXT_PUBLIC_SUPABASE_ANON_KEY` dengan kredensial proyek Supabase Anda.
+2. Isi `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, dan `DATABASE_URL` dengan kredensial proyek Supabase/PostgreSQL Anda. Jika dashboard Supabase Anda masih menampilkan `anon key`, variabel `NEXT_PUBLIC_SUPABASE_ANON_KEY` juga tetap didukung.
 
 ### 3. Setup Database (Supabase)
-Sistem ini menggunakan struktur database relasional yang kompleks. Anda dapat menemukan **Schema SQL lengkap** beserta **Dummy Data** awal di dalam file `CRUD.md`.
-Silakan *copy-paste* isi SQL dari `CRUD.md` ke dalam SQL Editor di *dashboard* Supabase Anda lalu *Run* untuk membuat tabel dan men-*seed* data awal.
+Sistem ini menggunakan struktur database relasional yang kompleks. File SQL berada di folder `src/sql`:
+- `src/sql/schema.sql`
+- `src/sql/seed.sql`
+- `src/sql/triggers/*.sql`
+
+Jalankan schema, seed, lalu trigger melalui SQL Editor di dashboard Supabase.
 
 ### 4. Jalankan Server Lokal
 Setelah konfigurasi selesai, jalankan perintah:
@@ -33,12 +37,12 @@ Buka browser dan akses [http://localhost:3000](http://localhost:3000).
 
 ## Akun Demo
 
-- **Administrator**: 
+- **Administrator**:
   - Username: `adminutama`
   - Password: `pass123`
-- **Organizer**: 
+- **Organizer**:
   - Username: `eomusic`
   - Password: `pass123`
-- **Customer**: 
+- **Customer**:
   - Username: `userbudi`
   - Password: `pass123`
