@@ -5,6 +5,7 @@ export const mockEvent: Event = {
   event_title: "Synthwave Live Festival 2026",
   event_date: "2026-08-15",
   venue_id: "Stadion Madya, Jakarta",
+  venue_name: "Stadion Madya, Jakarta",
   artists: ["The Midnight"],
   categories: [
     { id: "cat_vvip", name: "VVIP", price: 2500000, quota: 50, remaining: 12, total: 50 },

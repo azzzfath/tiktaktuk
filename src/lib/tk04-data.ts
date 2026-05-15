@@ -136,6 +136,7 @@ export async function listEvents(): Promise<Event[]> {
     event_date: row.event_date,
     event_time: row.event_time,
     venue_id: row.venue_id,
+    venue_name: row.venue_id,
     artists: [],
     categories: row.categories ?? [],
     seats: row.seats ?? [],

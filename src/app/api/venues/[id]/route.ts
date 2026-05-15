@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getApiSessionUser, userHasRole } from "@/lib/api-session";
 import pool from "@/lib/supabase";
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getApiSessionUser();
 
   if (!user || !userHasRole(user, ["administrator", "organizer"])) {
@@ -10,7 +10,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   }
 
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
     const { venue_name, capacity, address, city, hasReservedSeating } = body;
 
@@ -35,7 +35,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getApiSessionUser();
 
   if (!user || !userHasRole(user, ["administrator", "organizer"])) {
@@ -43,7 +43,7 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
   }
 
   try {
-    const { id } = params;
+    const { id } = await params;
 
     // Catatan: Jika venue sudah dipakai di tabel 'event', 
     // query ini mungkin akan error karena Foreign Key Constraint.

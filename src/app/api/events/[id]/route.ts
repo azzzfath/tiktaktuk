@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getApiSessionUser, userHasRole } from "@/lib/api-session";
 import pool from "@/lib/supabase"; // Pool raw SQL
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getApiSessionUser();
 
   if (!user || !userHasRole(user, ["administrator", "organizer"])) {
@@ -10,7 +10,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   }
 
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
     const { event_title, event_date, event_time, venue_id } = body;
 
@@ -51,7 +51,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getApiSessionUser();
 
   if (!user || !userHasRole(user, ["administrator", "organizer"])) {
@@ -59,7 +59,7 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
   }
 
   try {
-    const { id } = params;
+    const { id } = await params;
 
     // Validasi kepemilikan acara sebelum dihapus
     if (user.role === "organizer") {
