@@ -1,6 +1,7 @@
 # TikTakTuk - Platform Ticketing Event
 
-Link : tiktaktuk-diajakdaffa.vercel.app
+Link : tiktaktuk-diajakdaffa.vercel.app.
+
 TikTakTuk adalah platform manajemen dan pemesanan tiket acara (konser, festival, dll) yang dibuat menggunakan Next.js dan Supabase. Sistem ini dilengkapi dengan manajemen peran (Administrator, Organizer, Customer) serta manajemen venue dan kursi.
 
 ## Persiapan (Getting Started)
