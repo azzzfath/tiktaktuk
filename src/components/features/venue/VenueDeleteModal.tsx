@@ -1,36 +1,58 @@
 "use client";
 
-import { Button } from "@/components/ui/Button";
+import { useState } from "react";
 import { Modal } from "@/components/ui/Modal";
+import { Button } from "@/components/ui/Button";
+import { useToast } from "@/hooks/useToast";
 
 interface VenueDeleteModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onSuccess: () => void;
+  venueId?: string;
 }
 
-export const VenueDeleteModal = ({ isOpen, onClose, onConfirm }: VenueDeleteModalProps) => {
-  return (
-    <Modal 
-      isOpen={isOpen} 
-      onClose={onClose} 
-      title="Hapus Venue" 
-      titleClassName="text-[#EF4444]"
-    >
-      <div className="space-y-6">
-        <p className="text-[#F4F4F5]">
-          Apakah Anda yakin ingin menghapus venue ini? Tindakan ini tidak dapat dibatalkan.
-        </p>
+export function VenueDeleteModal({ isOpen, onClose, onSuccess, venueId }: VenueDeleteModalProps) {
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
 
-        <div className="flex justify-end gap-3 pt-4">
-          <Button type="button" variant="ghost" className="bg-[#1A1A1A] border border-white/10" onClick={onClose}>
-            Batal
-          </Button>
-          <Button type="button" variant="danger" onClick={onConfirm}>
-            Hapus
+  const handleDelete = async () => {
+    if (!venueId) return;
+    setLoading(true);
+
+    try {
+      const res = await fetch(`/api/venues/${venueId}`, { method: "DELETE" });
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || "Gagal menghapus venue.");
+
+      toast("Venue berhasil dihapus.", "success");
+      onSuccess();
+      onClose();
+    } catch (err: any) {
+      toast(err.message, "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title="Hapus Venue">
+      <div className="pt-4">
+        <p className="text-zinc-400 text-sm mb-6">
+          Apakah Anda yakin ingin menghapus venue ini? Tindakan ini tidak dapat dibatalkan dan mungkin gagal jika venue masih digunakan oleh acara aktif.
+        </p>
+        <div className="flex gap-3">
+          <Button variant="ghost" onClick={onClose} className="flex-1">Batal</Button>
+          <Button 
+            disabled={loading} 
+            onClick={handleDelete} 
+            className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+          >
+            {loading ? "Menghapus..." : "Ya, Hapus"}
           </Button>
         </div>
       </div>
     </Modal>
   );
-};
+}
