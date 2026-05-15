@@ -1,39 +1,27 @@
-"use client";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { AppNavbar } from "@/components/features/layout/AppNavbar";
+import { SeatManagement } from "@/components/features/ticket-seat/SeatManagement";
+import { getSessionUser, sessionCookieName } from "@/lib/db";
 
-import { useState } from "react";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-import { SeatListPage } from "@/components/features/SeatListPage";
+export default async function SeatsPage() {
+  const user = await getSessionUser((await cookies()).get(sessionCookieName)?.value);
 
-export default function SeatsPage() {
-  const [role, setRole] = useState<'CUSTOMER' | 'ADMIN' | 'ORGANIZER'>('ADMIN');
+  if (!user) {
+    redirect("/login");
+  }
+
+  const permissions = {
+    role: user.role,
+    canCreateTicket: user.role === "administrator" || user.role === "organizer",
+    canManageTicket: user.role === "administrator" || user.role === "organizer",
+    canManageSeat: user.role === "administrator" || user.role === "organizer"
+  };
 
   return (
-    <div className="min-h-screen bg-[#0F0F0F] p-6 sm:p-10 pb-28">
-
-      {/* TOP NAV */}
-      <div className="max-w-6xl mx-auto flex items-center justify-between mb-10">
-        <Link href="/" className="flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors">
-          <ArrowLeft className="w-4 h-4" /> Kembali ke Dashboard
-        </Link>
-        {/* Role Toggler */}
-        <div className="flex items-center gap-3 bg-[#1A1A1A] border border-white/10 px-4 py-2 rounded-xl">
-          <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest">Role:</span>
-          <div className="flex bg-[#0F0F0F] rounded-lg p-1 border border-white/10">
-            {(['CUSTOMER', 'ADMIN', 'ORGANIZER'] as const).map((r) => (
-              <button
-                key={r}
-                onClick={() => setRole(r)}
-                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${role === r ? 'bg-[#6366F1] text-white' : 'text-zinc-500 hover:text-white'}`}
-              >
-                {r}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <SeatListPage userRole={role} />
-    </div>
+    <main className="min-h-screen bg-[#0F0F0F] text-[#F4F4F5]">
+      <AppNavbar user={user} />
+      <SeatManagement permissions={permissions} />
+    </main>
   );
 }

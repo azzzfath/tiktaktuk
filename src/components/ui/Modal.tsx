@@ -8,9 +8,10 @@ interface ModalProps {
   title: string;
   children: React.ReactNode;
   className?: string;
+  titleClassName?: string;
 }
 
-export function Modal({ isOpen, onClose, title, children, className }: ModalProps) {
+export function Modal({ isOpen, onClose, title, children, className, titleClassName }: ModalProps) {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -32,7 +33,7 @@ export function Modal({ isOpen, onClose, title, children, className }: ModalProp
         aria-modal="true"
       >
         <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
-          <h2 className="text-lg font-semibold text-text-dark">{title}</h2>
+          <h2 className={cn("text-lg font-semibold text-text-dark", titleClassName)}>{title}</h2>
           <button
             onClick={onClose}
             className="rounded-full p-1 text-zinc-400 hover:bg-white/10 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50"
