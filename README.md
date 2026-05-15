@@ -32,7 +32,6 @@ npm run dev
 Buka browser dan akses [http://localhost:3000](http://localhost:3000).
 
 ## Akun Demo
-Jika Anda telah memasukkan *dummy data* dari `CRUD.md`, Anda dapat menggunakan akun berikut untuk masuk ke dashboard dengan role yang berbeda:
 
 - **Administrator**: 
   - Username: `adminutama`
