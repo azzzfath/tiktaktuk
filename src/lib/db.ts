@@ -237,13 +237,32 @@ export async function updatePassword(userId: string, oldPassword: string, newPas
 
 export async function getDashboardData(user: SessionUser): Promise<DashboardData> {
   const supabase = getSupabaseServerClient();
-  const [{ count: users }, { count: events }, { count: venues }, { count: orders }] =
-    await Promise.all([
-      supabase.from("user_account").select("user_id", { count: "exact", head: true }),
-      supabase.from("event").select("event_id", { count: "exact", head: true }),
-      supabase.from("venue").select("venue_id", { count: "exact", head: true }),
-      supabase.from("order").select("order_id", { count: "exact", head: true }),
-    ]);
+  const [
+    { count: users },
+    { count: events },
+    { count: venues },
+    { count: orders },
+    { count: tickets },
+    { count: seats },
+    { count: validTickets },
+    { count: occupiedSeats },
+  ] = await Promise.all([
+    supabase.from("user_account").select("user_id", { count: "exact", head: true }),
+    supabase.from("event").select("event_id", { count: "exact", head: true }),
+    supabase.from("venue").select("venue_id", { count: "exact", head: true }),
+    supabase.from("order").select("order_id", { count: "exact", head: true }),
+    supabase.from("ticket").select("ticket_id", { count: "exact", head: true }),
+    supabase.from("seat").select("seat_id", { count: "exact", head: true }),
+    supabase.from("ticket").select("ticket_id", { count: "exact", head: true }).eq("status", "VALID"),
+    supabase.from("seat").select("seat_id", { count: "exact", head: true }).eq("is_occupied", true),
+  ]);
+
+  const totalTickets = tickets ?? 0;
+  const totalSeats = seats ?? 0;
+  const totalValid = validTickets ?? 0;
+  const totalOccupied = occupiedSeats ?? 0;
+  const expiredTickets = totalTickets - totalValid;
+  const availableSeats = totalSeats - totalOccupied;
 
   if (user.role === "administrator") {
     return {
@@ -274,6 +293,22 @@ export async function getDashboardData(user: SessionUser): Promise<DashboardData
             { label: "Total Penggunaan", value: "57 kali" },
           ],
         },
+        {
+          title: "Manajemen Tiket",
+          rows: [
+            { label: "Total Tiket Terbit", value: `${totalTickets} tiket` },
+            { label: "Tiket Valid", value: `${totalValid} tiket` },
+            { label: "Tiket Kadaluwarsa", value: `${expiredTickets} tiket` },
+          ],
+        },
+        {
+          title: "Manajemen Kursi",
+          rows: [
+            { label: "Total Kursi Terdaftar", value: `${totalSeats} kursi` },
+            { label: "Kursi Terisi", value: `${totalOccupied} kursi` },
+            { label: "Kursi Tersedia", value: `${availableSeats} kursi` },
+          ],
+        },
       ],
     };
   }
@@ -286,7 +321,7 @@ export async function getDashboardData(user: SessionUser): Promise<DashboardData
       actions: ["Kelola Acara", "Venue"],
       metrics: [
         { label: "Acara Aktif", value: "3", helper: "Dalam koordinasi", tone: "primary" },
-        { label: "Tiket Terjual", value: "1,243", helper: "Bulan ini", tone: "success" },
+        { label: "Tiket Terjual", value: `${totalValid}`, helper: "Total valid", tone: "success" },
         { label: "Revenue", value: "Rp 4.8M", helper: "Bulan ini", tone: "accent" },
         { label: "Venue Mitra", value: String(venues ?? 0), helper: "Lokasi aktif", tone: "warning" },
       ],
@@ -299,6 +334,15 @@ export async function getDashboardData(user: SessionUser): Promise<DashboardData
             { label: "Malam Akustik Bandung", value: "Live" },
           ],
         },
+        {
+          title: "Tiket & Kursi",
+          rows: [
+            { label: "Tiket Terbit", value: `${totalTickets} tiket` },
+            { label: "Tiket Valid", value: `${totalValid} tiket` },
+            { label: "Total Kursi", value: `${totalSeats} kursi` },
+            { label: "Kursi Terisi", value: `${totalOccupied} kursi` },
+          ],
+        },
       ],
     };
   }
@@ -309,7 +353,7 @@ export async function getDashboardData(user: SessionUser): Promise<DashboardData
     subtitle: "Acara menarik menunggu Anda",
     actions: ["Cari Tiket"],
     metrics: [
-      { label: "Tiket Aktif", value: "2", helper: "Siap digunakan", tone: "primary" },
+      { label: "Tiket Aktif", value: `${totalValid}`, helper: "Siap digunakan", tone: "primary" },
       { label: "Acara Diikuti", value: "12", helper: "Total pengalaman", tone: "success" },
       { label: "Kode Promo", value: "3", helper: "Tersedia untuk Anda", tone: "accent" },
       { label: "Total Belanja", value: "Rp 1.6M", helper: "Bulan ini", tone: "warning" },
@@ -320,6 +364,13 @@ export async function getDashboardData(user: SessionUser): Promise<DashboardData
         rows: [
           { label: "Konser Melodi Senja", value: "VIP" },
           { label: "Festival Seni Budaya", value: "Regular" },
+        ],
+      },
+      {
+        title: "Info Kursi Saya",
+        rows: [
+          { label: "Tiket dengan Kursi", value: `${totalOccupied} tiket` },
+          { label: "Tiket Tanpa Kursi", value: `${totalValid - totalOccupied} tiket` },
         ],
       },
     ],
@@ -415,9 +466,9 @@ function normalizeUsername(username: string) {
 }
 
 function validateUsername(username: string) {
-  if (!/^[a-z0-9_]+$/.test(username)) {
+  if (!/^[a-z0-9]+$/.test(username)) {
     throw new Error(
-      `Username "${username}" hanya boleh mengandung huruf, angka, dan underscore tanpa simbol lain atau spasi.`
+      `Username "${username}" hanya boleh mengandung huruf dan angka tanpa simbol atau spasi.`
     );
   }
 }
