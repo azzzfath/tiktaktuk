@@ -92,10 +92,12 @@ export function ProfileView({ user }: ProfileViewProps) {
               <h2 className="text-lg font-semibold">Informasi Profil</h2>
               <p className="text-sm text-zinc-500">Username tidak dapat diubah</p>
             </div>
-            <Button type="button" variant="secondary" onClick={() => setEditing((value) => !value)}>
-              <Pencil className="mr-2 inline h-4 w-4" />
-              Edit
-            </Button>
+            {user.role !== "administrator" && (
+              <Button type="button" variant="secondary" onClick={() => setEditing((value) => !value)}>
+                <Pencil className="mr-2 inline h-4 w-4" />
+                Edit
+              </Button>
+            )}
           </div>
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#6366F1] text-xl font-bold">
             {profile.displayName.charAt(0).toUpperCase()}
