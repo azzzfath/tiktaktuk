@@ -1,36 +1,44 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TikTakTuk - Platform Ticketing Event
 
-## Getting Started
+TikTakTuk adalah platform manajemen dan pemesanan tiket acara (konser, festival, dll) yang dibuat menggunakan Next.js dan Supabase. Sistem ini dilengkapi dengan manajemen peran (Administrator, Organizer, Customer) serta manajemen venue dan kursi.
 
-First, run the development server:
+## Persiapan (Getting Started)
 
+Bagi penguji atau developer lain yang ingin menjalankan proyek ini di mesin lokal, ikuti langkah-langkah berikut:
+
+### 1. Kloning dan Install Dependencies
+Pastikan Anda sudah menginstall Node.js.
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Setup Environment Variables
+Proyek ini membutuhkan koneksi ke database Supabase. Karena `.env.local` tidak di-*push* ke GitHub demi keamanan, Anda harus membuat file `.env.local` sendiri di *root* folder.
+1. Salin file `.env.example` menjadi `.env.local`:
+```bash
+cp .env.example .env.local
+```
+2. Isi `NEXT_PUBLIC_SUPABASE_URL` dan `NEXT_PUBLIC_SUPABASE_ANON_KEY` dengan kredensial proyek Supabase Anda.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Setup Database (Supabase)
+Sistem ini menggunakan struktur database relasional yang kompleks. Anda dapat menemukan **Schema SQL lengkap** beserta **Dummy Data** awal di dalam file `CRUD.md`.
+Silakan *copy-paste* isi SQL dari `CRUD.md` ke dalam SQL Editor di *dashboard* Supabase Anda lalu *Run* untuk membuat tabel dan men-*seed* data awal.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 4. Jalankan Server Lokal
+Setelah konfigurasi selesai, jalankan perintah:
+```bash
+npm run dev
+```
+Buka browser dan akses [http://localhost:3000](http://localhost:3000).
 
-## Learn More
+## Akun Demo
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Administrator**: 
+  - Username: `adminutama`
+  - Password: `pass123`
+- **Organizer**: 
+  - Username: `eomusic`
+  - Password: `pass123`
+- **Customer**: 
+  - Username: `userbudi`
+  - Password: `pass123`
