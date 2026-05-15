@@ -38,8 +38,8 @@ export function ProfileView({ user }: ProfileViewProps) {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        fullName: user.role === "customer" ? profile.displayName : undefined,
-        phoneNumber: user.role === "customer" ? profile.contact : undefined,
+        fullName: (user.role === "customer" || user.role === "administrator") ? profile.displayName : undefined,
+        phoneNumber: (user.role === "customer" || user.role === "administrator") ? profile.contact : undefined,
         organizerName: user.role === "organizer" ? profile.displayName : undefined,
         contactEmail: user.role === "organizer" ? profile.contact : undefined,
       }),
@@ -92,12 +92,10 @@ export function ProfileView({ user }: ProfileViewProps) {
               <h2 className="text-lg font-semibold">Informasi Profil</h2>
               <p className="text-sm text-zinc-500">Username tidak dapat diubah</p>
             </div>
-            {user.role !== "administrator" && (
-              <Button type="button" variant="secondary" onClick={() => setEditing((value) => !value)}>
-                <Pencil className="mr-2 inline h-4 w-4" />
-                Edit
-              </Button>
-            )}
+            <Button type="button" variant="secondary" onClick={() => setEditing((value) => !value)}>
+              <Pencil className="mr-2 inline h-4 w-4" />
+              Edit
+            </Button>
           </div>
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#6366F1] text-xl font-bold">
             {profile.displayName.charAt(0).toUpperCase()}
@@ -113,13 +111,13 @@ export function ProfileView({ user }: ProfileViewProps) {
             ) : (
               <ProfileField icon={UserRound} label="Nama" value={profile.displayName} />
             )}
-            {user.role !== "administrator" && editing ? (
+            {editing ? (
               <label className="flex flex-col gap-2 text-sm font-medium">
                 Kontak
                 <Input value={profile.contact} onChange={(event) => setProfile({ ...profile, contact: event.target.value })} />
               </label>
             ) : null}
-            {user.role !== "administrator" && !editing ? (
+            {!editing ? (
               <ProfileField icon={user.role === "organizer" ? Mail : Phone} label="Kontak" value={profile.contact || "-"} />
             ) : null}
           </div>
