@@ -1,0 +1,17 @@
+﻿src/app/explore/page.tsx(118,41): error TS2322: Type '"muted"' is not assignable to type '"error" | "primary" | "success" | "warning" | "default" | "secondary" | undefined'.
+src/components/features/event/EventDeleteModal.tsx(18,7): error TS2322: Type '{ children: Element; isOpen: boolean; onClose: () => void; title: string; titleClassName: string; }' is not assignable to type 'IntrinsicAttributes & ModalProps'.
+  Property 'titleClassName' does not exist on type 'IntrinsicAttributes & ModalProps'.
+src/components/features/event/EventFormModal.tsx(86,21): error TS2322: Type '"primary" | "muted"' is not assignable to type '"error" | "primary" | "success" | "warning" | "default" | "secondary" | undefined'.
+  Type '"muted"' is not assignable to type '"error" | "primary" | "success" | "warning" | "default" | "secondary" | undefined'.
+src/components/features/order/DeleteOrderModal.tsx(21,7): error TS2322: Type '{ children: Element; isOpen: true; onClose: () => void; title: string; titleClassName: string; }' is not assignable to type 'IntrinsicAttributes & ModalProps'.
+  Property 'titleClassName' does not exist on type 'IntrinsicAttributes & ModalProps'.
+src/components/features/promotion/DeletePromotionModal.tsx(25,7): error TS2322: Type '{ children: Element; isOpen: true; onClose: () => void; title: string; titleClassName: string; }' is not assignable to type 'IntrinsicAttributes & ModalProps'.
+  Property 'titleClassName' does not exist on type 'IntrinsicAttributes & ModalProps'.
+src/components/features/ticket-seat/SeatDeleteModal.tsx(15,73): error TS2322: Type '{ children: Element; isOpen: boolean; onClose: () => void; title: string; titleClassName: string; }' is not assignable to type 'IntrinsicAttributes & ModalProps'.
+  Property 'titleClassName' does not exist on type 'IntrinsicAttributes & ModalProps'.
+src/components/features/ticket-seat/TicketDeleteModal.tsx(15,75): error TS2322: Type '{ children: Element; isOpen: boolean; onClose: () => void; title: string; titleClassName: string; }' is not assignable to type 'IntrinsicAttributes & ModalProps'.
+  Property 'titleClassName' does not exist on type 'IntrinsicAttributes & ModalProps'.
+src/components/features/venue/VenueDeleteModal.tsx(18,7): error TS2322: Type '{ children: Element; isOpen: boolean; onClose: () => void; title: string; titleClassName: string; }' is not assignable to type 'IntrinsicAttributes & ModalProps'.
+  Property 'titleClassName' does not exist on type 'IntrinsicAttributes & ModalProps'.
+src/components/features/venue/VenueManagement.tsx(118,24): error TS2322: Type '"primary" | "muted"' is not assignable to type '"error" | "primary" | "success" | "warning" | "default" | "secondary" | undefined'.
+  Type '"muted"' is not assignable to type '"error" | "primary" | "success" | "warning" | "default" | "secondary" | undefined'.

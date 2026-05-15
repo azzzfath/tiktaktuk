@@ -1,55 +1,66 @@
 import { NextResponse } from "next/server";
 import { getApiSessionUser, userHasRole } from "@/lib/api-session";
-import { deleteVenue, updateVenue } from "@/lib/tk04-data";
+import pool from "@/lib/supabase";
 
-interface VenueRouteContext {
-  params: Promise<{ id: string }>;
-}
-
-export async function PUT(request: Request, context: VenueRouteContext) {
+export async function PUT(request: Request, { params }: { params: { id: string } }) {
   const user = await getApiSessionUser();
 
-  if (!userHasRole(user, ["administrator", "organizer"])) {
-    return NextResponse.json({ error: "Anda tidak memiliki akses mengubah venue." }, { status: 403 });
+  if (!user || !userHasRole(user, ["administrator", "organizer"])) {
+    return NextResponse.json({ error: "Anda tidak memiliki akses mengedit venue." }, { status: 403 });
   }
 
   try {
-    const { id } = await context.params;
-    const venue = await updateVenue(id, await request.json());
+    const { id } = params;
+    const body = await request.json();
+    const { venue_name, capacity, address, city, hasReservedSeating } = body;
 
-    if (!venue) {
-      return NextResponse.json({ error: "Venue tidak ditemukan." }, { status: 404 });
+    const query = `
+      UPDATE venue 
+      SET venue_name = $1, capacity = $2, address = $3, city = $4, has_reserved_seating = $5
+      WHERE venue_id = $6 
+      RETURNING *
+    `;
+    const values = [venue_name.trim(), capacity, address, city, hasReservedSeating, id];
+
+    const { rows } = await pool.query(query, values);
+
+    if (rows.length === 0) {
+      return NextResponse.json({ error: "Venue tidak ditemukan" }, { status: 404 });
     }
 
-    return NextResponse.json(venue);
-  } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Gagal memperbarui venue." },
-      { status: 500 }
-    );
+    return NextResponse.json(rows[0]);
+  } catch (error: any) {
+    console.error("PUT Venue Error:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
-export async function DELETE(_request: Request, context: VenueRouteContext) {
+export async function DELETE(request: Request, { params }: { params: { id: string } }) {
   const user = await getApiSessionUser();
 
-  if (!userHasRole(user, ["administrator", "organizer"])) {
+  if (!user || !userHasRole(user, ["administrator", "organizer"])) {
     return NextResponse.json({ error: "Anda tidak memiliki akses menghapus venue." }, { status: 403 });
   }
 
   try {
-    const { id } = await context.params;
-    const venue = await deleteVenue(id);
+    const { id } = params;
 
-    if (!venue) {
-      return NextResponse.json({ error: "Venue tidak ditemukan." }, { status: 404 });
+    // Catatan: Jika venue sudah dipakai di tabel 'event', 
+    // query ini mungkin akan error karena Foreign Key Constraint.
+    const query = "DELETE FROM venue WHERE venue_id = $1 RETURNING *";
+    const { rows } = await pool.query(query, [id]);
+
+    if (rows.length === 0) {
+      return NextResponse.json({ error: "Venue tidak ditemukan" }, { status: 404 });
     }
 
-    return NextResponse.json(venue);
-  } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Gagal menghapus venue." },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Venue berhasil dihapus" });
+  } catch (error: any) {
+    console.error("DELETE Venue Error:", error);
+    // Jika error karena masih dipakai di tabel lain
+    if (error.code === '23503') {
+        return NextResponse.json({ error: "Venue tidak bisa dihapus karena masih digunakan oleh acara aktif." }, { status: 400 });
+    }
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

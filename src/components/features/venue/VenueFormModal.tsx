@@ -1,112 +1,127 @@
 "use client";
 
-import { FormEvent } from "react";
+import { useState, useEffect } from "react";
+import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { Modal } from "@/components/ui/Modal";
-import type { Venue, VenueFormValues } from "@/types";
+import { useToast } from "@/hooks/useToast";
+import type { Venue } from "@/types";
 
 interface VenueFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  initialData?: Venue | null; 
-  onSubmit: (values: VenueFormValues) => void;
+  onSuccess: () => void;
+  initialData?: Venue | null;
 }
 
-export const VenueFormModal = ({ isOpen, onClose, initialData, onSubmit }: VenueFormModalProps) => {
-  const isEditing = !!initialData;
-  const title = isEditing ? "Edit Venue" : "Tambah Venue Baru";
-  const submitText = isEditing ? "Simpan" : "Tambah";
+export function VenueFormModal({ isOpen, onClose, onSuccess, initialData }: VenueFormModalProps) {
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  
+  const [formData, setFormData] = useState({
+    venue_name: "",
+    capacity: 0,
+    address: "",
+    city: "",
+    hasReservedSeating: false,
+  });
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        venue_name: initialData.venue_name,
+        capacity: initialData.capacity,
+        address: initialData.address || "",
+        city: initialData.city,
+        hasReservedSeating: initialData.hasReservedSeating,
+      });
+    } else {
+      setFormData({ venue_name: "", capacity: 0, address: "", city: "", hasReservedSeating: false });
+    }
+  }, [initialData, isOpen]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const form = new FormData(e.currentTarget);
-    onSubmit({
-      venue_name: String(form.get("venue_name") ?? ""),
-      capacity: Number(form.get("capacity") ?? 0),
-      city: String(form.get("city") ?? ""),
-      address: String(form.get("address") ?? ""),
-      hasReservedSeating: form.get("hasReservedSeating") === "on",
-    });
+    setLoading(true);
+
+    const method = initialData ? "PUT" : "POST";
+    const url = initialData ? `/api/venues/${initialData.venue_id}` : "/api/venues";
+
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      if (!res.ok) throw new Error("Gagal menyimpan data.");
+
+      toast(initialData ? "Venue berhasil diupdate!" : "Venue baru berhasil ditambahkan!", "success");
+      onSuccess();
+      onClose();
+    } catch (err: any) {
+      toast(err.message, "error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={title}>
-      <form className="space-y-4" onSubmit={handleSubmit}>
-        {/* NAMA VENUE */}
+    <Modal isOpen={isOpen} onClose={onClose} title={initialData ? "Edit Venue" : "Tambah Venue"}>
+      <form onSubmit={handleSubmit} className="space-y-4 pt-4">
         <div>
-          <label className="block text-xs font-semibold text-zinc-500 mb-1.5 tracking-wider uppercase">
-            NAMA VENUE (VENUE_NAME)
-          </label>
+          <label className="text-xs font-bold text-zinc-500 uppercase mb-1 block">Nama Venue</label>
           <Input 
-            name="venue_name"
-            placeholder="cth. Jakarta Convention Center" 
-            defaultValue={initialData?.venue_name || ""}
+            required 
+            value={formData.venue_name} 
+            onChange={e => setFormData({...formData, venue_name: e.target.value})} 
+            placeholder="Contoh: Balai Sidang UI" 
           />
         </div>
-
-        {/* GRID: KAPASITAS & KOTA */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-semibold text-zinc-500 mb-1.5 tracking-wider uppercase">
-              KAPASITAS (CAPACITY)
-            </label>
+            <label className="text-xs font-bold text-zinc-500 uppercase mb-1 block">Kapasitas</label>
             <Input 
-              name="capacity"
               type="number" 
-              placeholder="1000" 
-              defaultValue={initialData?.capacity || ""}
+              required 
+              value={formData.capacity} 
+              onChange={e => setFormData({...formData, capacity: parseInt(e.target.value)})} 
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-zinc-500 mb-1.5 tracking-wider uppercase">
-              KOTA (CITY)
-            </label>
+            <label className="text-xs font-bold text-zinc-500 uppercase mb-1 block">Kota</label>
             <Input 
-              name="city"
-              placeholder="Jakarta" 
-              defaultValue={initialData?.city || ""}
+              required 
+              value={formData.city} 
+              onChange={e => setFormData({...formData, city: e.target.value})} 
+              placeholder="Contoh: Depok" 
             />
           </div>
         </div>
-
-        {/* ALAMAT */}
         <div>
-          <label className="block text-xs font-semibold text-zinc-500 mb-1.5 tracking-wider uppercase">
-            ALAMAT (ADDRESS)
-          </label>
-          <textarea 
-            name="address"
-            className="bg-[#1A1A1A] border border-white/10 rounded-lg px-3 py-2 text-[#F4F4F5] placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#6366F1]/50 w-full min-h-[100px] resize-y"
-            placeholder="Jl. Gatot Subroto No.1"
-            defaultValue={initialData?.address || ""}
+          <label className="text-xs font-bold text-zinc-500 uppercase mb-1 block">Alamat</label>
+          <Input 
+            value={formData.address} 
+            onChange={e => setFormData({...formData, address: e.target.value})} 
+            placeholder="Jl. Margonda Raya..." 
           />
         </div>
-
-        {/* CHECKBOX RESERVED SEATING */}
-        <div className="flex items-center gap-2 pt-2">
+        <div className="flex items-center gap-2 py-2">
           <input 
-            name="hasReservedSeating"
             type="checkbox" 
-            id="reserved-seating"
-            className="w-4 h-4 rounded border-white/10 bg-[#1A1A1A] text-[#6366F1] focus:ring-[#6366F1]/50 focus:ring-offset-[#0F0F0F]"
-            defaultChecked={initialData?.hasReservedSeating || false}
+            id="reserved"
+            checked={formData.hasReservedSeating}
+            onChange={e => setFormData({...formData, hasReservedSeating: e.target.checked})}
+            className="w-4 h-4 rounded border-white/10 bg-[#1A1A1A] text-[#6366F1]"
           />
-          <label htmlFor="reserved-seating" className="text-sm text-[#F4F4F5]">
-            Has Reserved Seating
-          </label>
+          <label htmlFor="reserved" className="text-sm text-zinc-300">Gunakan Reserved Seating (Kursi Bernomor)</label>
         </div>
-
-        {/* ACTION BUTTONS */}
-        <div className="flex gap-3 pt-6 border-t border-white/10 mt-6">
-          <Button type="button" variant="ghost" className="w-full bg-[#1A1A1A] border border-white/10" onClick={onClose}>
-            Batal
-          </Button>
-          <Button type="submit" variant="primary" className="w-full">
-            {submitText}
-          </Button>
+        
+        <div className="flex gap-3 pt-4">
+          <Button type="button" variant="ghost" onClick={onClose} className="flex-1">Batal</Button>
+          <Button type="submit" disabled={loading} className="flex-1 bg-[#6366F1]">{loading ? "Menyimpan..." : "Simpan"}</Button>
         </div>
       </form>
     </Modal>
   );
-};
+}

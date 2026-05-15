@@ -21,7 +21,8 @@ interface NavItem {
 const navItems: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", roles: ["administrator", "organizer", "customer"], icon: LayoutDashboard },
   { href: "/venues", label: "Manajemen Venue", roles: ["administrator", "organizer"], icon: Users },
-  { href: "/checkout", label: "Cari Event", roles: ["customer"], icon: CalendarDays },
+  { href: "/events", label: "Manajemen Event", roles: ["administrator", "organizer"], icon: CalendarDays },
+  { href: "/explore", label: "Cari Event", roles: ["customer"], icon: CalendarDays },
   { href: "/tickets", label: "Tiket", roles: ["administrator", "organizer", "customer"], icon: Ticket },
   { href: "/seats", label: "Kursi", roles: ["administrator", "organizer", "customer"], icon: Armchair },
   { href: "/orders", label: "Pesanan", roles: ["administrator", "organizer", "customer"], icon: Receipt },
