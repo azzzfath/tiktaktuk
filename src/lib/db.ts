@@ -244,7 +244,7 @@ export async function getDashboardData(user: SessionUser): Promise<DashboardData
     { count: orders },
     { count: tickets },
     { count: seats },
-    { count: validTickets },
+    { data: validTickets },
     { count: occupiedSeats },
   ] = await Promise.all([
     supabase.from("user_account").select("user_id", { count: "exact", head: true }),
@@ -253,13 +253,23 @@ export async function getDashboardData(user: SessionUser): Promise<DashboardData
     supabase.from("order").select("order_id", { count: "exact", head: true }),
     supabase.from("ticket").select("ticket_id", { count: "exact", head: true }),
     supabase.from("seat").select("seat_id", { count: "exact", head: true }),
-    supabase.from("ticket").select("ticket_id", { count: "exact", head: true }).eq("status", "VALID"),
-    supabase.from("seat").select("seat_id", { count: "exact", head: true }).eq("is_occupied", true),
+    supabase.from("ticket").select("ticket_id, ticket_category(event(event_datetime))"),
+    supabase.from("has_relationship").select("seat_id", { count: "exact", head: true }),
   ]);
 
   const totalTickets = tickets ?? 0;
   const totalSeats = seats ?? 0;
-  const totalValid = validTickets ?? 0;
+  
+  // Calculate valid tickets
+  let totalValid = 0;
+  if (validTickets && Array.isArray(validTickets)) {
+    const now = new Date();
+    totalValid = validTickets.filter((t: any) => {
+      const evtDate = t.ticket_category?.event?.event_datetime;
+      return evtDate ? new Date(evtDate) >= now : false;
+    }).length;
+  }
+
   const totalOccupied = occupiedSeats ?? 0;
   const expiredTickets = totalTickets - totalValid;
   const availableSeats = totalSeats - totalOccupied;
