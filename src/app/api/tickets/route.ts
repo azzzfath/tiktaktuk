@@ -5,8 +5,8 @@ import { getSupabaseServerClient } from "@/lib/db";
 interface TicketRow {
   ticket_id: string;
   ticket_code: string;
-  tcategory_id: string;
-  torder_id: string;
+  category_id: string;
+  order_id: string;
 }
 
 export async function GET() {
@@ -29,9 +29,9 @@ export async function GET() {
     const organizer = data.organizers.find((item) => item.user_id === user.userId);
 
     const rows = data.tickets.flatMap((ticket) => {
-      const category = categoryById.get(ticket.tcategory_id);
-      const event = category ? eventById.get(category.tevent_id) : null;
-      const order = orderById.get(ticket.torder_id);
+      const category = categoryById.get(ticket.category_id);
+      const event = category ? eventById.get(category.event_id) : null;
+      const order = orderById.get(ticket.order_id);
       const customer = order ? customerById.get(order.customer_id) : null;
 
       if (!category || !event || !order || !customer) return [];
@@ -44,8 +44,8 @@ export async function GET() {
       return [{
         ticket_id: ticket.ticket_id,
         ticket_code: ticket.ticket_code,
-        category_id: ticket.tcategory_id,
-        order_id: ticket.torder_id,
+        category_id: ticket.category_id,
+        order_id: ticket.order_id,
         category_name: category.category_name,
         price: Number(category.price),
         event_title: event.event_title,
@@ -81,7 +81,7 @@ export async function POST(request: Request) {
     const supabase = getSupabaseServerClient();
     const data = await loadTicketContext(supabase);
     const category = data.categories.find((item) => item.category_id === category_id);
-    const event = data.events.find((item) => item.event_id === category?.tevent_id);
+    const event = data.events.find((item) => item.event_id === category?.event_id);
     const organizer = data.organizers.find((item) => item.user_id === user?.userId);
 
     if (!category || !event) {
@@ -92,11 +92,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Organizer hanya dapat membuat tiket untuk event miliknya." }, { status: 403 });
     }
 
-    const code = generateTicketCode(event.event_title, category.category_name, data.tickets.filter((ticket) => ticket.tcategory_id === category_id).length);
+    const code = generateTicketCode(event.event_title, category.category_name, data.tickets.filter((ticket) => ticket.category_id === category_id).length);
     const { data: ticket, error: ticketError } = await supabase
       .from("ticket")
-      .insert({ ticket_code: code, tcategory_id: category_id, torder_id: order_id })
-      .select("ticket_id, ticket_code, tcategory_id, torder_id")
+      .insert({ ticket_code: code, category_id: category_id, order_id: order_id })
+      .select("ticket_id, ticket_code, category_id, order_id")
       .single<TicketRow>();
 
     if (ticketError || !ticket) {
@@ -125,8 +125,8 @@ export async function POST(request: Request) {
 
 async function loadTicketContext(supabase: ReturnType<typeof getSupabaseServerClient>) {
   const [tickets, categories, events, venues, orders, customers, organizers, relationships, seats] = await Promise.all([
-    supabase.from("ticket").select("ticket_id, ticket_code, tcategory_id, torder_id"),
-    supabase.from("ticket_category").select("category_id, category_name, quota, price, tevent_id"),
+    supabase.from("ticket").select("ticket_id, ticket_code, category_id, order_id"),
+    supabase.from("ticket_category").select("category_id, category_name, quota, price, event_id"),
     supabase.from("event").select("event_id, event_title, event_datetime, venue_id, organizer_id"),
     supabase.from("venue").select("venue_id, venue_name"),
     supabase.from("ORDER").select("order_id, customer_id, order_date"),

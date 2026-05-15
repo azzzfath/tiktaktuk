@@ -21,9 +21,9 @@ BEGIN
   SELECT COUNT(*)::INTEGER
   INTO related_event_count
   FROM ticket t
-  JOIN ticket_category tc ON tc.category_id = t.tcategory_id
-  JOIN event e ON e.event_id = tc.tevent_id
-  WHERE t.torder_id = NEW.order_id;
+  JOIN ticket_category tc ON tc.category_id = t.category_id
+  JOIN event e ON e.event_id = tc.event_id
+  WHERE t.order_id = NEW.order_id;
 
   IF related_event_count = 0 THEN
     RAISE EXCEPTION 'Order dengan ID % belum memiliki event untuk validasi promotion.', NEW.order_id;
@@ -32,9 +32,9 @@ BEGIN
   SELECT e.event_datetime::DATE
   INTO invalid_event_date
   FROM ticket t
-  JOIN ticket_category tc ON tc.category_id = t.tcategory_id
-  JOIN event e ON e.event_id = tc.tevent_id
-  WHERE t.torder_id = NEW.order_id
+  JOIN ticket_category tc ON tc.category_id = t.category_id
+  JOIN event e ON e.event_id = tc.event_id
+  WHERE t.order_id = NEW.order_id
     AND (
       e.event_datetime::DATE < promo_record.start_date
       OR e.event_datetime::DATE > promo_record.end_date

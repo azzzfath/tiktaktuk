@@ -18,7 +18,7 @@ Proyek ini membutuhkan koneksi ke database Supabase. Karena `.env.local` tidak d
 ```bash
 cp .env.example .env.local
 ```
-2. Isi `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, dan `DATABASE_URL` dengan kredensial proyek Supabase/PostgreSQL Anda.
+2. Isi `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, dan `DATABASE_URL` dengan kredensial proyek Supabase/PostgreSQL Anda. Jika dashboard Supabase Anda masih menampilkan `anon key`, variabel `NEXT_PUBLIC_SUPABASE_ANON_KEY` juga tetap didukung.
 
 ### 3. Setup Database (Supabase)
 Sistem ini menggunakan struktur database relasional yang kompleks. File SQL berada di folder `src/sql`:

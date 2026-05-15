@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS ticket_category (
   category_name VARCHAR NOT NULL,
   quota INTEGER NOT NULL CHECK (quota > 0),
   price NUMERIC NOT NULL CHECK (price >= 0),
-  tevent_id UUID NOT NULL REFERENCES event(event_id)
+  event_id UUID NOT NULL REFERENCES event(event_id)
 );
 
 CREATE TABLE IF NOT EXISTS "ORDER" (
@@ -87,8 +87,8 @@ CREATE TABLE IF NOT EXISTS "ORDER" (
 CREATE TABLE IF NOT EXISTS ticket (
   ticket_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   ticket_code VARCHAR NOT NULL UNIQUE,
-  tcategory_id UUID NOT NULL REFERENCES ticket_category(category_id),
-  torder_id UUID NOT NULL REFERENCES "ORDER"(order_id)
+  category_id UUID NOT NULL REFERENCES ticket_category(category_id),
+  order_id UUID NOT NULL REFERENCES "ORDER"(order_id)
 );
 
 CREATE TABLE IF NOT EXISTS has_relationship (
@@ -120,9 +120,9 @@ CREATE INDEX IF NOT EXISTS idx_app_session_expires_at ON app_session(expires_at)
 CREATE INDEX IF NOT EXISTS idx_customer_user_id ON customer(user_id);
 CREATE INDEX IF NOT EXISTS idx_organizer_user_id ON organizer(user_id);
 CREATE INDEX IF NOT EXISTS idx_administrator_user_id ON administrator(user_id);
-CREATE INDEX IF NOT EXISTS idx_ticket_category_event_id ON ticket_category(tevent_id);
-CREATE INDEX IF NOT EXISTS idx_ticket_order_id ON ticket(torder_id);
-CREATE INDEX IF NOT EXISTS idx_ticket_category_id ON ticket(tcategory_id);
+CREATE INDEX IF NOT EXISTS idx_ticket_category_event_id ON ticket_category(event_id);
+CREATE INDEX IF NOT EXISTS idx_ticket_order_id ON ticket(order_id);
+CREATE INDEX IF NOT EXISTS idx_ticket_category_id ON ticket(category_id);
 CREATE INDEX IF NOT EXISTS idx_has_relationship_ticket_id ON has_relationship(ticket_id);
 CREATE INDEX IF NOT EXISTS idx_order_customer_id ON "ORDER"(customer_id);
 CREATE INDEX IF NOT EXISTS idx_order_promotion_promotion_id ON order_promotion(promotion_id);

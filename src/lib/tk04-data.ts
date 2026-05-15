@@ -36,8 +36,8 @@ const orderSelect = `
           COUNT(t.ticket_id)::INT AS quantity,
           tc.price AS unit_price
         FROM ticket t
-        JOIN ticket_category tc ON tc.category_id = t.tcategory_id
-        WHERE t.torder_id = o.order_id
+        JOIN ticket_category tc ON tc.category_id = t.category_id
+        WHERE t.order_id = o.order_id
         GROUP BY tc.category_id
       ) AS grouped
     ), '[]'::JSON) AS items
@@ -46,9 +46,9 @@ const orderSelect = `
   LEFT JOIN LATERAL (
     SELECT e.event_id, e.event_title
     FROM ticket t
-    JOIN ticket_category tc ON tc.category_id = t.tcategory_id
-    JOIN event e ON e.event_id = tc.tevent_id
-    WHERE t.torder_id = o.order_id
+    JOIN ticket_category tc ON tc.category_id = t.category_id
+    JOIN event e ON e.event_id = tc.event_id
+    WHERE t.order_id = o.order_id
     ORDER BY t.ticket_code
     LIMIT 1
   ) AS first_event ON TRUE
@@ -101,8 +101,8 @@ export async function listEvents(): Promise<Event[]> {
             GREATEST(tc.quota - COUNT(t.ticket_id), 0)::INT AS remaining,
             tc.quota AS total
           FROM ticket_category tc
-          LEFT JOIN ticket t ON t.tcategory_id = tc.category_id
-          WHERE tc.tevent_id = e.event_id
+          LEFT JOIN ticket t ON t.category_id = tc.category_id
+          WHERE tc.event_id = e.event_id
           GROUP BY tc.category_id
         ) AS category_row
       ), '[]'::JSON) AS categories,
@@ -118,7 +118,7 @@ export async function listEvents(): Promise<Event[]> {
           CROSS JOIN LATERAL (
             SELECT tc.category_id
             FROM ticket_category tc
-            WHERE tc.tevent_id = e.event_id
+            WHERE tc.event_id = e.event_id
             ORDER BY tc.price DESC
             LIMIT 1
           ) AS first_category
@@ -203,7 +203,7 @@ export async function createOrderForCustomer(
           tc.quota,
           COUNT(t.ticket_id)::INT AS sold
         FROM ticket_category tc
-        LEFT JOIN ticket t ON t.tcategory_id = tc.category_id
+        LEFT JOIN ticket t ON t.category_id = tc.category_id
         WHERE tc.category_id = $1::UUID
         GROUP BY tc.category_id
         FOR UPDATE OF tc
@@ -244,7 +244,7 @@ export async function createOrderForCustomer(
     for (let index = 0; index < quantity; index += 1) {
       const { rows: ticketRows } = await client.query(
         `
-          INSERT INTO ticket (ticket_code, tcategory_id, torder_id)
+          INSERT INTO ticket (ticket_code, category_id, order_id)
           VALUES ($1, $2, $3)
           RETURNING ticket_id
         `,
@@ -300,12 +300,12 @@ export async function deleteOrder(id: string) {
           DELETE FROM has_relationship hr
           USING ticket t
           WHERE hr.ticket_id = t.ticket_id
-            AND t.torder_id = $1::UUID
+            AND t.order_id = $1::UUID
         `,
         [id]
       );
     }
-    await client.query("DELETE FROM ticket WHERE torder_id = $1::UUID", [id]);
+    await client.query("DELETE FROM ticket WHERE order_id = $1::UUID", [id]);
     await client.query('DELETE FROM "ORDER" WHERE order_id = $1::UUID', [id]);
   });
 

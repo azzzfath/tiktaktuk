@@ -20,7 +20,7 @@ export function TicketCategoryModal({ initial, events, onSubmit, onClose }: Tick
   const [categoryName, setCategoryName] = useState(initial?.category_name ?? '');
   const [price, setPrice] = useState(initial?.price?.toString() ?? '');
   const [quota, setQuota] = useState(initial?.quota?.toString() ?? '');
-  const [eventId, setEventId] = useState(initial?.tevent_id ?? '');
+  const [eventId, setEventId] = useState(initial?.event_id ?? '');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const isEdit = !!initial;
@@ -45,7 +45,7 @@ export function TicketCategoryModal({ initial, events, onSubmit, onClose }: Tick
       category_name: categoryName.trim(),
       price: Number(price),
       quota: Number(quota),
-      tevent_id: eventId,
+      event_id: eventId,
       event_name: selectedEvent?.event_title ?? '',
     });
   }

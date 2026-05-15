@@ -76,7 +76,7 @@ ON CONFLICT (seat_id) DO UPDATE SET
   row_number = EXCLUDED.row_number,
   venue_id = EXCLUDED.venue_id;
 
-INSERT INTO ticket_category (category_id, category_name, quota, price, tevent_id)
+INSERT INTO ticket_category (category_id, category_name, quota, price, event_id)
 VALUES
   ('99999999-1111-0000-0000-000000000001', 'VVIP', 50, 2500000, '77777777-1111-0000-0000-000000000001'),
   ('99999999-1111-0000-0000-000000000002', 'VIP', 100, 1500000, '77777777-1111-0000-0000-000000000001'),
@@ -85,7 +85,7 @@ ON CONFLICT (category_id) DO UPDATE SET
   category_name = EXCLUDED.category_name,
   quota = EXCLUDED.quota,
   price = EXCLUDED.price,
-  tevent_id = EXCLUDED.tevent_id;
+  event_id = EXCLUDED.event_id;
 
 INSERT INTO promotion (promotion_id, promo_code, discount_type, discount_value, start_date, end_date, usage_limit)
 VALUES
@@ -108,12 +108,12 @@ ON CONFLICT (order_id) DO UPDATE SET
   total_amount = EXCLUDED.total_amount,
   customer_id = EXCLUDED.customer_id;
 
-INSERT INTO ticket (ticket_id, ticket_code, tcategory_id, torder_id)
+INSERT INTO ticket (ticket_id, ticket_code, category_id, order_id)
 VALUES
   ('cccccccc-1111-0000-0000-000000000001', 'DEMO-TCK-001', '99999999-1111-0000-0000-000000000002', 'bbbbbbbb-1111-0000-0000-000000000001')
 ON CONFLICT (ticket_code) DO UPDATE SET
-  tcategory_id = EXCLUDED.tcategory_id,
-  torder_id = EXCLUDED.torder_id;
+  category_id = EXCLUDED.category_id,
+  order_id = EXCLUDED.order_id;
 
 INSERT INTO order_promotion (order_promotion_id, promotion_id, order_id)
 VALUES
