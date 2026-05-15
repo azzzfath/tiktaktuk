@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { CalendarDays, LayoutDashboard, LogOut, Receipt, Tag, Ticket, UserRound, Users } from "lucide-react";
+import { Armchair, CalendarDays, LayoutDashboard, LogOut, Receipt, Tag, Ticket, UserRound, Users } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { SessionUser } from "@/types/auth";
@@ -22,6 +22,8 @@ const navItems: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", roles: ["administrator", "organizer", "customer"], icon: LayoutDashboard },
   { href: "/venues", label: "Manajemen Venue", roles: ["administrator", "organizer"], icon: Users },
   { href: "/checkout", label: "Cari Event", roles: ["customer"], icon: CalendarDays },
+  { href: "/tickets", label: "Tiket", roles: ["administrator", "organizer", "customer"], icon: Ticket },
+  { href: "/seats", label: "Kursi", roles: ["administrator", "organizer", "customer"], icon: Armchair },
   { href: "/orders", label: "Pesanan", roles: ["administrator", "organizer", "customer"], icon: Receipt },
   { href: "/promotions", label: "Promosi", roles: ["administrator", "customer"], icon: Tag },
   { href: "/profile", label: "Profile", roles: ["administrator", "organizer", "customer"], icon: UserRound },
